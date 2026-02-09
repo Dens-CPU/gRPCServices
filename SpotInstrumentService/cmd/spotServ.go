@@ -2,8 +2,8 @@ package main
 
 import (
 	spotAPI "Academy/gRPCServices/Protobuf/Spot"
-	"Academy/gRPCServices/SpotInstrumentService/pkg/control"
 	"Academy/gRPCServices/SpotInstrumentService/pkg/interseptors"
+	spotmemory "Academy/gRPCServices/SpotInstrumentService/pkg/memory"
 	spotmethods "Academy/gRPCServices/SpotInstrumentService/pkg/methods"
 	"fmt"
 	"log"
@@ -34,12 +34,16 @@ func main() {
 	}
 
 	var wg sync.WaitGroup
-	spot := spotmethods.NewSpotInstrument(len(markets)) //Инициализаця нового SpotInstrument
+
+	//Инициализация хранилища
+	storage := spotmemory.NewStorage(len(markets))
+	spotService := spotmethods.NewSpotInstrument(storage)
+	log.Println("Хранилище инициализированно")
 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		l := control.AccessControl(markets, spot.Memory) //Запуск управления рынками
+		l := storage.AccessControl(markets) //Запуск управления рынками
 		log.Println(l)
 	}()
 
@@ -53,7 +57,7 @@ func main() {
 		interseptors.XRequestID,                    //Создание ID запроса
 		interseptors.LoggerInterseptor,             //Логирование запроса
 	))
-	spotAPI.RegisterSpotInstrumentServiceServer(grpcServer, spot)
+	spotAPI.RegisterSpotInstrumentServiceServer(grpcServer, spotService)
 
 	fmt.Println("Сервер запущен на порту 8080...")
 	err = grpcServer.Serve(listener)

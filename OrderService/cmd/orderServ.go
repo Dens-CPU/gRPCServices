@@ -2,7 +2,8 @@ package main
 
 import (
 	"Academy/gRPCServices/OrderService/pkg/interseptors"
-	"Academy/gRPCServices/OrderService/pkg/methods"
+	ordermemory "Academy/gRPCServices/OrderService/pkg/memory"
+	ordermethods "Academy/gRPCServices/OrderService/pkg/methods"
 	orderAPI "Academy/gRPCServices/Protobuf/Order"
 	"fmt"
 	"log"
@@ -22,8 +23,9 @@ func main() {
 		interseptors.XRequestID,
 		interseptors.LoggerInterseptor,
 	))
-	orderServ := methods.NewOrderService()                     //Конструктор для OrderService
-	orderAPI.RegisterOrderServiceServer(grpcServer, orderServ) //Регистрация методов
+	storage := ordermemory.NewStorage()
+	service := ordermethods.NewOrderService(storage)         //Конструктор для OrderService
+	orderAPI.RegisterOrderServiceServer(grpcServer, service) //Регистрация методов
 
 	fmt.Println("Сервер работает на порту 8081...")
 	err = grpcServer.Serve(listener)

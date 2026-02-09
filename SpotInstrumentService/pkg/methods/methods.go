@@ -3,33 +3,29 @@ package spotmethods
 
 import (
 	spotAPI "Academy/gRPCServices/Protobuf/Spot"
-	"Academy/gRPCServices/SpotInstrumentService/pkg/memory"
+	spotmemory "Academy/gRPCServices/SpotInstrumentService/pkg/memory"
 	"context"
 	"errors"
-	"sync"
 )
+
+// Интерфейс для рынков
+type MarketRepository interface {
+	GetEnableMarkets() []*spotmemory.Market //Получение доступных рынков
+}
 
 type SpotInstrument struct {
 	spotAPI.UnimplementedSpotInstrumentServiceServer
-	Memory memory.Storage
+	repo MarketRepository //Абстракия над хранилищами. Не важно, что это будет за хранилище, важно, чтобы оно удовлетворяло всем методам интерфейса.
 }
 
-func NewSpotInstrument(size int) *SpotInstrument {
-	return &SpotInstrument{Memory: make(memory.Storage)}
+// Конструктор для SpotInstrument
+func NewSpotInstrument(repo MarketRepository) *SpotInstrument {
+	return &SpotInstrument{repo: repo}
 }
 
 // Список доступных рынков
 func (s *SpotInstrument) ViewMarket(ctx context.Context, req *spotAPI.ViewReq) (*spotAPI.ViewResp, error) {
-	var enableMarkets []memory.Market
-	var mu sync.RWMutex
-
-	for _, value := range s.Memory {
-		mu.RLock()
-		if value.Delete_at == nil || value.Enable == true {
-			enableMarkets = append(enableMarkets, *value)
-		}
-		mu.RUnlock()
-	}
+	enableMarkets := s.repo.GetEnableMarkets()
 	if len(enableMarkets) != 0 {
 		return Mapper(enableMarkets), nil
 	}
@@ -37,7 +33,7 @@ func (s *SpotInstrument) ViewMarket(ctx context.Context, req *spotAPI.ViewReq) (
 }
 
 // Маппер для ViewMarket
-func Mapper(em []memory.Market) *spotAPI.ViewResp {
+func Mapper(em []*spotmemory.Market) *spotAPI.ViewResp {
 	var resp spotAPI.ViewResp
 	for _, el := range em {
 		resp.EnableMarkets = append(resp.EnableMarkets, el.ID)
