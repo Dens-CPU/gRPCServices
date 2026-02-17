@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package spotAPI;
+
+option go_package = "./Protobuf/gen/spot_service;spotAPI";
+
+//Предоставления данных о рынках
+service SpotInstrumentService {
+    rpc ViewMarket(ViewReq)returns(ViewResp); //Проверка доступных рынков
+}
+
+//Запрос для ViewMarket
+message ViewReq{
+    User_Roles user_roles = 1; //Поле для юзера
+}
+
+enum User_Roles{
+    ROLE_UNSPECIFIED = 0;
+    ROLE_USER = 1;
+    ROLE_ADMIN = 2;
+}
+
+//Ответ для ViewMarket
+message ViewResp{
+    repeated int64 enable_markets = 1;
+}

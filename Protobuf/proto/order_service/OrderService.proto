@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package orderAPI;
+
+option go_package = "./Protobuf/gen/order;orderAPI";
+
+
+
+//Сервис управления заказами 
+service OrderService{
+rpc GetOrderStatus(GetReq)returns(GetResp); //Получение информации о заказе
+rpc CreateOrder(CreateReq)returns(CreateResp); //Создание заказа
+}
+
+
+//Запрос для GetOrderStatus
+message GetReq{
+    int64 order_id = 1; //ID заказа
+    int64 user_id = 2; //ID пользователя
+}
+
+//Ответ для GetOrderStatus
+message GetResp{
+    string order_status = 1; //Статус заказа
+}
+
+//Запрос для CreateOrder
+message CreateReq{
+int64 user_id  = 1; //Идентификатор пользователя
+int64 market_id = 2; // Индентифиактор маркетплейса
+string order_type = 3; //Тип заказа(Стандарт,экспрес,ко времени)
+double price = 4; //Цена
+int64 quantity = 5; //Количество
+}
+
+//Ответ для CreateOrder
+message CreateResp{
+    int64 order_id = 1; //Идентификатор заказа
+    string status = 2;//Статус заказа
+}

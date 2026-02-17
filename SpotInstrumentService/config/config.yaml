@@ -1,0 +1,10 @@
+server:
+  port: ":8080"
+  host: "localhost"
+  network: "tcp"
+
+redis:
+  host: "localhost"
+  port: 6379
+  password: ""
+  db: 0
