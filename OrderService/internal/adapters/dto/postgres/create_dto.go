@@ -27,19 +27,15 @@ type MarketDTO struct {
 }
 
 type Oreders_idDTO struct {
-	Order_id   int
+	Order_id   string
 	Created_at time.Time
 }
 
-func CreatOrderDTO(order order.Order, orderID int, user_id int, market_id int) *OrderDTO {
+func CreatOrderDTO(order order.Order) *OrderDTO {
 	input := OrderDTO{
-		Ref_User_Id:   user_id,
-		Ref_Market_Id: market_id,
-		Order_type:    order.Order_type,
-		Price:         order.Price,
-		Quantity:      int(order.Quantity),
-		Status:        order.Status,
-		Ref_Order_Id:  orderID,
+		Order_type: order.Order_type,
+		Price:      order.Price,
+		Quantity:   int(order.Quantity),
 	}
 	return &input
 }
@@ -52,6 +48,6 @@ func CreateMarketDTO(market_id int) *MarketDTO {
 	return &MarketDTO{Market_id: market_id}
 }
 
-func CreateOrders_idDTO(order_id int) *Oreders_idDTO {
+func CreateOrders_idDTO(order_id string) *Oreders_idDTO {
 	return &Oreders_idDTO{Order_id: order_id}
 }

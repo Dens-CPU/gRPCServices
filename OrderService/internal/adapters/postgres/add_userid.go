@@ -2,24 +2,31 @@ package postgres
 
 import (
 	postgresdto "Academy/gRPCServices/OrderService/internal/adapters/dto/postgres"
+	"Academy/gRPCServices/OrderService/internal/domain/order"
 	"context"
-	"database/sql"
-	"errors"
 	"time"
+
+	"github.com/jackc/pgx/v5"
 )
 
-func (p *PostgresDB) AddUserID(user_id int) (int, error) {
-	dto := postgresdto.CreateUserDTO(user_id)
+func (p *PostgresDB) AddUserID(tx pgx.Tx, ctx context.Context, newOrder order.Order) (int, error) {
+	//Инициализация DTO
+	dto := postgresdto.CreateUserDTO(int(newOrder.User_id))
+	dto.Created_at = time.Now()
+
+	//Поиск пользователя с id
 	var id int
-	err := p.QueryRow(context.Background(), `
-	SELECT id FROM users WHERE user_id = $1;
-`, dto.User_id).Scan(&id)
-	if errors.Is(err, sql.ErrNoRows) {
-		dto.Created_at = time.Now()
-		err = p.QueryRow(context.Background(), `
-		INSERT INTO users(user_id,created_at) VALUES ($1,$2)
-		`, dto.User_id, dto.Created_at).Scan(&id)
-		return id, nil
+	err := tx.QueryRow(ctx, `
+		INSERT INTO users (user_id, created_at)
+		VALUES ($1, $2)
+		ON CONFLICT (user_id) DO UPDATE
+		SET user_id = EXCLUDED.user_id
+		RETURNING id
+	`, dto.User_id, dto.Created_at).Scan(&id)
+
+	if err != nil {
+		return 0, err
 	}
-	return 0, err
+
+	return id, nil
 }

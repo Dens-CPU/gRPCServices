@@ -1,7 +1,7 @@
 package spotclient
 
 import (
-	spotAPI "Academy/gRPCServices/Protobuf/gen/spot_service"
+	spotAPI "Academy/gRPCServices/Protobuf/gen/spot"
 	serverconfig "Academy/gRPCServices/SpotInstrumentService/config/server"
 
 	"google.golang.org/grpc"

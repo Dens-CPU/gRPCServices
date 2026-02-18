@@ -1,24 +1,26 @@
 package main
 
 import (
-	"Academy/gRPCServices/OrderService/internal/adapters/memory"
+	"Academy/gRPCServices/OrderService/internal/adapters/postgres"
 	spotservice "Academy/gRPCServices/OrderService/internal/adapters/spot_service"
 	orderhandlers "Academy/gRPCServices/OrderService/internal/controllers/grpc_handlers"
 	"Academy/gRPCServices/OrderService/internal/usecase"
 	"Academy/gRPCServices/OrderService/pkg/orderserver"
 	orderAPI "Academy/gRPCServices/Protobuf/gen/order"
+
+	"context"
 	"fmt"
 	"log"
 )
 
 func main() {
-	storage := memory.NewStorage() //Инициализация хранилища in-memory
+	// storage := memory.NewStorage() //Инициализация хранилища in-memory
 
-	// ctx := context.Background()
-	// storage, err := postgres.NewDB(ctx) //Инициализаця хранилища postgres
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
+	ctx := context.Background()
+	storage, err := postgres.NewDB(ctx) //Инициализаця хранилища postgres
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	spotClient, err := spotservice.NewClient()
 	if err != nil {

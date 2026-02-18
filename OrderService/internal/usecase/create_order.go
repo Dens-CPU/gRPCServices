@@ -5,22 +5,17 @@ import (
 	"context"
 )
 
-func (o *OrderService) CreateOrder(ctx context.Context, newOrder order.Order) (int64, string, error) {
+func (o *OrderService) CreateOrder(ctx context.Context, newOrder order.Order) (string, string, error) {
 
 	marketsID, err := o.GetEnableMarkets(ctx)
 	if err != nil {
-		return 0, "", err
+		return "", "", err
 	}
 
-	//In-Memory реализация
-	orderID, err := o.AddOrderID(newOrder, marketsID)
+	orderID, status, err := o.AddOrderStorage(ctx, newOrder, marketsID)
 	if err != nil {
-		return 0, "", err
-	}
-	status, err := o.AddOrderStorage(newOrder, orderID)
-	if err != nil {
-		return 0, "", err
+		return "", "", err
 	}
 
-	return int64(orderID), status, nil
+	return orderID, status, nil
 }

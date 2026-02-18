@@ -1,42 +1,49 @@
 package postgres
 
 import (
+	postgresdto "Academy/gRPCServices/OrderService/internal/adapters/dto/postgres"
 	ordererrors "Academy/gRPCServices/OrderService/internal/domain/error"
 	"Academy/gRPCServices/OrderService/internal/domain/order"
 	"context"
-	"database/sql"
-	"errors"
-	"math"
-	"math/rand/v2"
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 )
 
-func (p *PostgresDB) AddOrderID(newOrder order.Order, marketsID []int64) (int, error) {
+func (p *PostgresDB) AddOrderID(tx pgx.Tx, ctx context.Context, newOrder order.Order, marketsID []int64) (int, string, error) {
 
 	var foundMarket bool //Флаг, показывающий найден нужный рынок или нет
 
-	for _, mId := range marketsID { //Проверка наличия нужного рынка
+	//Проверка наличия нужного рынка
+	for _, mId := range marketsID {
 		if mId == newOrder.Market_id {
 			foundMarket = true
 			break
 		}
 	}
-
 	if foundMarket != true {
-		return 0, ordererrors.Avalible_markets
+		return 0, "", ordererrors.Avalible_markets
 	}
-	var orderID int
-	for {
-		orderID = rand.IntN(math.MaxInt64)
-		var id int
-		err := p.QueryRow(context.Background(), `
-		SELECT order_id FROM orders_id WHERE order_id=$1;
-		`, orderID).Scan(&id)
-		if errors.Is(err, sql.ErrNoRows) {
-			err = p.QueryRow(context.Background(), `
-			INSERT INTO orders_id(order_id) VALUES ($1)
-			`, orderID).Scan(&id)
-			break
-		}
+
+	//Присвоение нового id заказа
+	var orderID string
+	orderID = uuid.New().String()
+
+	//Ининциализация DTO
+	dto := postgresdto.CreateOrders_idDTO(orderID)
+	dto.Created_at = time.Now()
+
+	//Запись в БД
+	var id int
+	err := tx.QueryRow(context.Background(), ` 
+	INSERT INTO orders_id(order_id,created_at) 
+	VALUES ($1,$2)
+	RETURNING id
+	`, dto.Order_id, dto.Created_at).Scan(&id)
+	if err != nil {
+		return 0, "", err
 	}
-	return orderID, nil
+
+	return id, orderID, nil
 }

@@ -9,8 +9,8 @@ CREATE TABLE IF NOT EXISTS orders(
     price FLOAT NOT NULL,
     quantity INT NOT NULL,
     status TEXT NOT NULL,
-    order_id INT REFERENCES orders(id),
-    Created_at TIMESTAMPTZ NOT NULL
+    order_id INT REFERENCES orders_id(id),
+    created_at TIMESTAMPTZ NOT NULL
 );
 -- +goose StatementEnd
 

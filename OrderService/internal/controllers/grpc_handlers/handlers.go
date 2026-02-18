@@ -1,15 +1,22 @@
 package orderhandlers
 
 import (
+	"Academy/gRPCServices/OrderService/internal/domain/order"
 	"Academy/gRPCServices/OrderService/internal/usecase"
 	orderAPI "Academy/gRPCServices/Protobuf/gen/order"
+	"context"
 )
+
+type Service interface {
+	CreateOrder(context.Context, order.Order) (string, string, error)
+	GetStatus(context.Context, order.Key) (string, error)
+}
 
 type Handlers struct {
 	orderAPI.UnimplementedOrderServiceServer
-	orderService *usecase.OrderService
+	Service Service
 }
 
 func NewHandlers(orderService *usecase.OrderService) *Handlers {
-	return &Handlers{orderService: orderService}
+	return &Handlers{Service: orderService}
 }

@@ -1,9 +1,12 @@
 package usecase
 
-import "Academy/gRPCServices/OrderService/internal/domain/order"
+import (
+	"Academy/gRPCServices/OrderService/internal/domain/order"
+	"context"
+)
 
-func (o *OrderService) GetStatus(key order.Key) (string, error) {
-	status, err := o.GetOrderState(key)
+func (o *OrderService) GetStatus(ctx context.Context, key order.Key) (string, error) {
+	status, err := o.GetOrderState(ctx, key)
 	if err != nil {
 		return "", err
 	}

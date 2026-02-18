@@ -8,6 +8,7 @@ import (
 
 // Получение доступных рынков
 func (s *SpotService) ViewMarket(user *domainusers.User) ([]int64, error) {
+
 	var enableMarkets []*domainmarket.Market
 	enableMarkets = s.GetEnableMarkets()
 

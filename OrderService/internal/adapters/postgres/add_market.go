@@ -2,26 +2,30 @@ package postgres
 
 import (
 	postgresdto "Academy/gRPCServices/OrderService/internal/adapters/dto/postgres"
+	"Academy/gRPCServices/OrderService/internal/domain/order"
 	"context"
-	"database/sql"
-	"errors"
 	"time"
+
+	"github.com/jackc/pgx/v5"
 )
 
-func (p *PostgresDB) AddMarketID(market_id int) (int, error) {
-	dto := postgresdto.CreateMarketDTO(market_id)
+func (p *PostgresDB) AddMarketID(tx pgx.Tx, ctx context.Context, newOrder order.Order) (int, error) {
+	//Инициализация DTO
+	dto := postgresdto.CreateMarketDTO(int(newOrder.Market_id))
+	dto.Created_at = time.Now()
+
+	//Добавление маркета
 	var id int
-	err := p.QueryRow(context.Background(), `
-	SELECT id FROM markets WHERE market_id = $1;
-`, dto.Market_id).Scan(&id)
-	if errors.Is(err, sql.ErrNoRows) {
-		dto.Created_at = time.Now()
-		//Добавить название маркета
-		//Переделать контракт spotInstrument дляполучения названия рынка
-		err = p.QueryRow(context.Background(), `
-		INSERT INTO users(user_id,created_at) VALUES ($1,$2)
-		`, dto.Market_id, dto.Created_at).Scan(&id)
-		return id, nil
+	err := tx.QueryRow(ctx, `
+		INSERT INTO markets (market_id, created_at)
+		VALUES ($1, $2)
+		ON CONFLICT (market_id) DO UPDATE
+		SET market_id = EXCLUDED.market_id
+		RETURNING id
+	`, dto.Market_id, dto.Created_at).Scan(&id)
+
+	if err != nil {
+		return 0, err
 	}
-	return 0, err
+	return id, nil
 }

@@ -12,9 +12,14 @@ type Storage struct {
 }
 
 // Создание нового хранинлища
-func NewStorage() *Storage {
+func NewStorage() (*Storage, error) {
 	s := Storage{
 		date: make(map[string]*domainmarket.Market),
 	}
-	return &s
+
+	err := s.AddMarkets() //Добавление рынков в хранилище
+	if err != nil {
+		return nil, err
+	}
+	return &s, nil
 }

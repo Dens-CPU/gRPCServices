@@ -11,16 +11,19 @@ import (
 
 // Добавление маркетов
 func (s *Storage) AddMarkets() error {
-	err := godotenv.Load("./SpotInstrumentService/config/market/.env")
+
+	err := godotenv.Load("./SpotInstrumentService/config/market/.env") //Подгрузка переменной окружения
 	if err != nil {
 		return err
 	}
+
 	path := os.Getenv("MARKETS")
-	file, err := os.ReadFile(path)
+	file, err := os.ReadFile(path) //Чтение файла с рынками
 	if err != nil {
 		return fmt.Errorf("ошибка прочтения файла:%w", err)
 	}
-	re := regexp.MustCompile(`([a-zA-Z0-9]+)+\s?([a-zA-Z0-9]+)?`)
+
+	re := regexp.MustCompile(`([a-zA-Z0-9]+)+\s?([a-zA-Z0-9]+)?`) //Извление названия рынков и добавление их в хранилище
 	markets := re.FindAllString(string(file), -1)
 	//Заполнение storage
 	for i, m := range markets {

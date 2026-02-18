@@ -6,9 +6,8 @@ import (
 )
 
 type Storage interface {
-	AddOrderStorage(order.Order, int) (string, error) //Добавление нового заказа в хранилище
-	GetOrderState(order.Key) (string, error)          //Получение статуса заказа
-	AddOrderID(order.Order, []int64) (int, error)     //Создание ID заказа
+	AddOrderStorage(context.Context, order.Order, []int64) (string, string, error) //Добавление нового заказа в хранилище
+	GetOrderState(context.Context, order.Key) (string, error)                      //Получение статуса заказа
 }
 
 type MarketsService interface {

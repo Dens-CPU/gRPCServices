@@ -12,5 +12,5 @@ type Order struct {
 
 type Key struct {
 	User_id  int64
-	Order_id int
+	Order_id string
 }

@@ -15,7 +15,7 @@ func (h *Handlers) CreateOrder(ctx context.Context, req *orderAPI.CreateReq) (*o
 		Price:      req.Price,
 		Quantity:   req.Quantity,
 	}
-	orderID, status, err := h.orderService.CreateOrder(ctx, newOrder)
+	orderID, status, err := h.Service.CreateOrder(ctx, newOrder)
 	if err != nil {
 		return &orderAPI.CreateResp{}, err
 	}

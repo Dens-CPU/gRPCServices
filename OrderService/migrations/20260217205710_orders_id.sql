@@ -2,7 +2,7 @@
 -- +goose StatementBegin
 CREATE TABLE IF NOT EXISTS  orders_id(
 id SERIAL PRIMARY KEY,
-orders_id INT NOT NULL UNIQUE,
+order_id TEXT NOT NULL UNIQUE,
 created_at TIMESTAMPTZ NOT NULL
 );
 -- +goose StatementEnd

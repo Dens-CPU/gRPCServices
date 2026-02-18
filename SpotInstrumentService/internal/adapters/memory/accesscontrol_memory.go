@@ -9,16 +9,15 @@ import (
 func init() {
 	rand.Seed(time.Now().Unix())
 }
-func (s *Storage) AccessControl() string {
 
+// Управление работой рынков
+func (s *Storage) AccessControl(ctx context.Context) string {
+
+	//Добавление названия рынков в слайс
 	var markets = make([]string, 0, len(s.date))
 	for key := range s.date {
 		markets = append(markets, key)
 	}
-
-	//Создание контекста для времени управления состояниями рынков
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
 
 	for {
 		select {
@@ -58,19 +57,17 @@ func (s *Storage) AccessControl() string {
 
 			case 2: //Востановление доступа к маркету на рынке
 
-				for { //Поиск маркета, который недоступен
-					n := rand.Intn(len(markets))
+				n := rand.Intn(len(markets))
 
-					s.mu.Lock()
-					key := markets[n]
-					if s.date[key].Enable == false {
-						s.date[key].Enable = true
-						s.date[key].Delete_at = nil
-						s.mu.Unlock()
-						break
-					}
+				s.mu.Lock()
+				key := markets[n]
+				if s.date[key].Enable == false {
+					s.date[key].Enable = true
+					s.date[key].Delete_at = nil
 					s.mu.Unlock()
+					break
 				}
+				s.mu.Unlock()
 
 			}
 		}

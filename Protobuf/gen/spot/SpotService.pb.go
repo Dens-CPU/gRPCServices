@@ -179,7 +179,7 @@ const file_Protobuf_proto_spot_service_SpotService_proto_rawDesc = "" +
 	"ROLE_ADMIN\x10\x022J\n" +
 	"\x15SpotInstrumentService\x121\n" +
 	"\n" +
-	"ViewMarket\x12\x10.spotAPI.ViewReq\x1a\x11.spotAPI.ViewRespB%Z#./Protobuf/gen/spot_service;spotAPIb\x06proto3"
+	"ViewMarket\x12\x10.spotAPI.ViewReq\x1a\x11.spotAPI.ViewRespB\x1dZ\x1b./Protobuf/gen/spot;spotAPIb\x06proto3"
 
 var (
 	file_Protobuf_proto_spot_service_SpotService_proto_rawDescOnce sync.Once

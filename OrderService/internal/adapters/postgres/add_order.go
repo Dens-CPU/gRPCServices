@@ -3,45 +3,64 @@ package postgres
 import (
 	postgresdto "Academy/gRPCServices/OrderService/internal/adapters/dto/postgres"
 	"Academy/gRPCServices/OrderService/internal/domain/order"
+	"time"
 
 	"context"
-	"time"
 )
 
-func (p *PostgresDB) AddOrderStorage(newOrder order.Order, orderID int) (string, error) {
+func (p *PostgresDB) AddOrderStorage(ctx context.Context, newOrder order.Order, marketsID []int64) (string, string, error) {
 
-	refOrderID, err := p.GetOrderID(orderID)
+	dto := postgresdto.CreatOrderDTO(newOrder)
+
+	//Начало транзакции
+	tx, err := p.Begin(ctx)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
-	refUserID, err := p.AddUserID(int(newOrder.User_id))
+	//Добавление ID заказа
+	refOrderId, orderID, err := p.AddOrderID(tx, ctx, newOrder, marketsID)
 	if err != nil {
-		return "", err
+		tx.Rollback(ctx)
+		return "", "", err
+	}
+	//Добавление пользователя
+	refUserID, err := p.AddUserID(tx, ctx, newOrder)
+	if err != nil {
+		tx.Rollback(ctx)
+		return "", "", err
 	}
 
-	refMarketID, err := p.AddMarketID(int(newOrder.Market_id))
+	//Добавление рынка
+	refMarketID, err := p.AddMarketID(tx, ctx, newOrder)
 	if err != nil {
-		return "", err
+		tx.Rollback(ctx)
+		return "", "", err
 	}
 
-	dto := postgresdto.CreatOrderDTO(newOrder, refOrderID, refUserID, refMarketID)
+	//Добавление ссылок в users
+	dto.Ref_User_Id = refUserID
+	dto.Ref_Market_Id = refMarketID
+	dto.Ref_Order_Id = refOrderId
 	dto.Status = "created"
 	dto.Created_at = time.Now()
-	_, err = p.Exec(context.Background(), `
-	INSERT INTO orders(user_id,market_id,order_type,price,quantity, status, order_id,created_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8);
-	`,
-		dto.Ref_User_Id,
-		dto.Ref_Market_Id,
-		dto.Order_type,
-		dto.Price,
-		dto.Quantity,
-		dto.Status,
-		dto.Ref_Order_Id,
-		dto.Created_at)
+
+	//Добавление заказа
+	var order_status string
+	err = tx.QueryRow(ctx, `
+	INSERT INTO orders(user_id,market_id,order_type,price,quantity,status,order_id,created_at)
+	VALUES($1,$2,$3,$4,$5,$6,$7,$8)
+	RETURNING status
+	`, dto.Ref_User_Id, dto.Ref_Market_Id, dto.Order_type, dto.Price, dto.Quantity, dto.Status, dto.Ref_Order_Id, dto.Created_at).Scan(&order_status)
 	if err != nil {
-		return "", err
+		tx.Rollback(ctx)
+		return "", "", err
 	}
 
-	return "create", nil
+	if err := tx.Commit(ctx); err != nil {
+		return "", "", err
+	}
+
+	p.ControlOrder(newOrder.Order_type, newOrder.User_id, orderID)
+	return orderID, order_status, nil
 }

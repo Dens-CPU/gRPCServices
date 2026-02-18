@@ -5,10 +5,10 @@ import (
 	"context"
 )
 
-func (p *PostgresDB) GetOrderState(key order.Key) (string, error) {
+func (p *PostgresDB) GetOrderState(ctx context.Context, key order.Key) (string, error) {
 	var status string
 
-	err := p.QueryRow(context.Background(), `
+	err := p.QueryRow(ctx, `
 	SELECT status 
 	FROM orders
 	JOIN users ON orders.user_id = users.id

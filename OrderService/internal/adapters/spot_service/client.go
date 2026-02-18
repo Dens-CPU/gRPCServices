@@ -1,7 +1,7 @@
 package spotservice
 
 import (
-	spotAPI "Academy/gRPCServices/Protobuf/gen/spot_service"
+	spotAPI "Academy/gRPCServices/Protobuf/gen/spot"
 	"Academy/gRPCServices/SpotInstrumentService/pkg/spotclient"
 )
 

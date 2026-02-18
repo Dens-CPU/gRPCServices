@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package spotAPI;
 
-option go_package = "./Protobuf/gen/spot_service;spotAPI";
+option go_package = "./Protobuf/gen/spot;spotAPI";
 
 //Предоставления данных о рынках
 service SpotInstrumentService {

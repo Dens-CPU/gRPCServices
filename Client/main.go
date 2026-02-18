@@ -23,7 +23,7 @@ func main() {
 		quantity  int64
 	)
 
-	fmt.Println("Доступные рынки:\n1.Yandex Market;\n2.OZON;\n3.Wildberris;\n4.Aliexpress.")
+	fmt.Println("Доступные рынки:\n0.Yandex Market;\n1.OZON;\n2.Wildberris;\n3.Aliexpress.")
 	fmt.Print("Введите user_id:")
 	fmt.Scanln(&userID)
 	fmt.Println("Введите market_id из предоставленного списка:")
@@ -44,7 +44,7 @@ func main() {
 	}
 
 	orderId := createResp.OrderId
-	fmt.Printf("Заказ:%d. Статус:%s.\n", orderId, createResp.Status)
+	fmt.Printf("Заказ:%s. Статус:%s.\n", orderId, createResp.Status)
 
 	time.Sleep(3 * time.Second)
 	getResp, err := client.GetOrderStatus(ctx, &orderAPI.GetReq{OrderId: orderId, UserId: userID})

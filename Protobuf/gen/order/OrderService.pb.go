@@ -24,8 +24,8 @@ const (
 // Запрос для GetOrderStatus
 type GetReq struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	OrderId       int64                  `protobuf:"varint,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"` //ID заказа
-	UserId        int64                  `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`    //ID пользователя
+	OrderId       string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"` //ID заказа
+	UserId        int64                  `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`   //ID пользователя
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -60,11 +60,11 @@ func (*GetReq) Descriptor() ([]byte, []int) {
 	return file_Protobuf_proto_order_service_OrderService_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *GetReq) GetOrderId() int64 {
+func (x *GetReq) GetOrderId() string {
 	if x != nil {
 		return x.OrderId
 	}
-	return 0
+	return ""
 }
 
 func (x *GetReq) GetUserId() int64 {
@@ -199,8 +199,8 @@ func (x *CreateReq) GetQuantity() int64 {
 // Ответ для CreateOrder
 type CreateResp struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	OrderId       int64                  `protobuf:"varint,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"` //Идентификатор заказа
-	Status        string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`                   //Статус заказа
+	OrderId       string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"` //Идентификатор заказа
+	Status        string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`                  //Статус заказа
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -235,11 +235,11 @@ func (*CreateResp) Descriptor() ([]byte, []int) {
 	return file_Protobuf_proto_order_service_OrderService_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *CreateResp) GetOrderId() int64 {
+func (x *CreateResp) GetOrderId() string {
 	if x != nil {
 		return x.OrderId
 	}
-	return 0
+	return ""
 }
 
 func (x *CreateResp) GetStatus() string {
@@ -255,7 +255,7 @@ const file_Protobuf_proto_order_service_OrderService_proto_rawDesc = "" +
 	"\n" +
 	"/Protobuf/proto/order_service/OrderService.proto\x12\borderAPI\"<\n" +
 	"\x06GetReq\x12\x19\n" +
-	"\border_id\x18\x01 \x01(\x03R\aorderId\x12\x17\n" +
+	"\border_id\x18\x01 \x01(\tR\aorderId\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\x03R\x06userId\",\n" +
 	"\aGetResp\x12!\n" +
 	"\forder_status\x18\x01 \x01(\tR\vorderStatus\"\x92\x01\n" +
@@ -268,7 +268,7 @@ const file_Protobuf_proto_order_service_OrderService_proto_rawDesc = "" +
 	"\bquantity\x18\x05 \x01(\x03R\bquantity\"?\n" +
 	"\n" +
 	"CreateResp\x12\x19\n" +
-	"\border_id\x18\x01 \x01(\x03R\aorderId\x12\x16\n" +
+	"\border_id\x18\x01 \x01(\tR\aorderId\x12\x16\n" +
 	"\x06status\x18\x02 \x01(\tR\x06status2\x7f\n" +
 	"\fOrderService\x125\n" +
 	"\x0eGetOrderStatus\x12\x10.orderAPI.GetReq\x1a\x11.orderAPI.GetResp\x128\n" +

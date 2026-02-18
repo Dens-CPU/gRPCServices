@@ -6,7 +6,7 @@ import domainmarket "Academy/gRPCServices/SpotInstrumentService/internal/domain/
 func (s *Storage) GetEnableMarkets() []*domainmarket.Market {
 	var enableMarkets []*domainmarket.Market
 
-	for _, value := range s.date {
+	for _, value := range s.date { //Поиск доступных рынков в хранилище
 		s.mu.RLock()
 		if value.Delete_at == nil || value.Enable == true {
 			enableMarkets = append(enableMarkets, value)

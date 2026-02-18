@@ -2,6 +2,7 @@ package interseptors
 
 import (
 	redisadapter "Academy/gRPCServices/SpotInstrumentService/internal/adapters/redis"
+	spoterrors "Academy/gRPCServices/SpotInstrumentService/internal/domain/errors"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -19,26 +20,24 @@ func RedisCacheInterceptor(cache *redisadapter.RedisDB, ttl time.Duration) grpc.
 	) (interface{}, error) {
 
 		//Формирование ключа
-		reqBytes, _ := json.Marshal(req)
-		key := fmt.Sprintf("grpc_cache:%s:%s", info.FullMethod, string(reqBytes))
-
-		//Проверка ключа в кеше
-		cached, err := cache.Get(ctx, key)
-		if err == nil {
-			var resp interface{}
-			json.Unmarshal([]byte(cached), &resp)
-			return resp, nil
+		var resp interface{}
+		key, exist := ctx.Value(requestIDKey).(string) //Получение ID зароса из контекста
+		if !exist {
+			return resp, spoterrors.Unavailable_request_id
 		}
 
-		//Если ключа нет то вызывается следующий обработчик
+		//Вызов следующего обработчика
 		resp, err := handler(ctx, req)
 		if err != nil {
 			return resp, err
 		}
 
-		//Сохранение нового лога в кеш
+		//Сохранение лога в кэш
 		respBytes, _ := json.Marshal(resp)
-		_ = cache.Set(ctx, key, string(respBytes), ttl)
+		err = cache.Set(ctx, key, string(respBytes), ttl)
+		if err != nil {
+			return nil, fmt.Errorf("ошибка сохранения лога в кэш:%w", err)
+		}
 
 		return resp, nil
 	}

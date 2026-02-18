@@ -5,9 +5,10 @@ import (
 	"Academy/gRPCServices/OrderService/internal/domain/order"
 	"math"
 	"math/rand"
+	"strconv"
 )
 
-func (s *Storage) AddOrderID(newOrder order.Order, marketsID []int64) (int, error) {
+func (s *Storage) AddOrderID(newOrder order.Order, marketsID []int64) (string, error) {
 
 	var foundMarket bool //Флаг, показывающий найден нужный рынок или нет
 
@@ -19,7 +20,7 @@ func (s *Storage) AddOrderID(newOrder order.Order, marketsID []int64) (int, erro
 	}
 
 	if foundMarket != true {
-		return 0, ordererrors.Avalible_markets
+		return "", ordererrors.Avalible_markets
 	}
 	var orderId int //ID нового заказа
 	for {
@@ -30,5 +31,6 @@ func (s *Storage) AddOrderID(newOrder order.Order, marketsID []int64) (int, erro
 			break
 		}
 	}
-	return orderId, nil
+
+	return strconv.Itoa(orderId), nil
 }

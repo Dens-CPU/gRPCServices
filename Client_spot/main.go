@@ -1,7 +1,7 @@
 package main
 
 import (
-	spotAPI "Academy/gRPCServices/Protobuf/gen/spot_service"
+	spotAPI "Academy/gRPCServices/Protobuf/gen/spot"
 	"context"
 	"fmt"
 	"log"

@@ -9,10 +9,10 @@ import (
 func (h *Handlers) GetOrderStatus(ctx context.Context, req *orderAPI.GetReq) (*orderAPI.GetResp, error) {
 	//Добавить валидацию запроса
 	key := order.Key{
-		Order_id: int(req.OrderId),
+		Order_id: req.OrderId,
 		User_id:  req.UserId,
 	}
-	status, err := h.orderService.GetOrderState(key)
+	status, err := h.Service.GetStatus(ctx, key)
 	if err != nil {
 		return &orderAPI.GetResp{}, err
 	}
