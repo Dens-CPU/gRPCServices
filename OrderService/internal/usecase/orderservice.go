@@ -8,7 +8,7 @@ import (
 type Storage interface {
 	AddOrderStorage(context.Context, order.Order, []int64) (string, string, error) //Добавление нового заказа в хранилище
 	GetOrderState(context.Context, order.Key) (string, error)                      //Получение статуса заказа
-	ControlOrder(orderType string, user_id int64, orderID string) chan string
+	ControlOrder(string, int64, string) chan string
 }
 
 type MarketsService interface {
@@ -16,11 +16,11 @@ type MarketsService interface {
 }
 
 type Notify interface {
-	AddNewState(user_id int64, orderId string, statCh chan string)
-	GetStatus(key order.Key) string
-	AddNewSub(key order.Key) (chan string, func())
-	GetNumbersSubsChan(key order.Key) int
-	UpdateStatusSubs(key order.Key)
+	AddNewState(int64, string, chan string)
+	GetStatus(order.Key) string
+	AddNewSub(order.Key) chan string
+	GetNumbersSubsChan(order.Key) int
+	UpdateStatusSubs(order.Key)
 }
 
 type OrderService struct {

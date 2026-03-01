@@ -7,9 +7,9 @@ import (
 )
 
 // Получение статуса заказа в стриминге
-func (o *OrderService) StreamGetState(ctx context.Context, key order.Key) (chan string, func()) {
+func (o *OrderService) StreamGetState(ctx context.Context, key order.Key) chan string {
 	//Добавление новой подписки для получения статусов
-	stateCh, unsubscribe := o.Notify.AddNewSub(key)
+	stateCh := o.Notify.AddNewSub(key)
 	fmt.Println("Подписан новый клиент")
 
 	//Получение кол-ва каналов
@@ -19,5 +19,5 @@ func (o *OrderService) StreamGetState(ctx context.Context, key order.Key) (chan 
 		fmt.Println("Запущена служба")
 	}
 
-	return stateCh, unsubscribe
+	return stateCh
 }

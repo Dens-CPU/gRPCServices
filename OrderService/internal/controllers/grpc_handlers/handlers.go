@@ -10,7 +10,7 @@ import (
 type Service interface {
 	CreateOrder(context.Context, order.Order) (string, string, error)
 	GetStatus(context.Context, order.Key) (string, error)
-	StreamGetState(ctx context.Context, key order.Key) (chan string, func())
+	StreamGetState(ctx context.Context, key order.Key) chan string
 }
 
 type Handlers struct {

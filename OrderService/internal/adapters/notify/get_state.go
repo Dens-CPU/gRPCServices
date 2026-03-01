@@ -7,5 +7,8 @@ func (s *StatusStorage) GetStatus(key order.Key) string {
 	s.mu.Lock()
 	status := s.Status[key]
 	s.mu.Unlock()
+	if status == "" {
+		return "created"
+	}
 	return status
 }

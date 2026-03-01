@@ -61,17 +61,19 @@ func main() {
 	orderId := createResp.OrderId
 	fmt.Printf("Заказ:%s. Статус:%s.\n", orderId, createResp.Status)
 
+	ctx, span = tr.Start(context.Background(), "StreamStatus")
+	defer span.End()
 	streamResp, err := client.StreamOrderUpdate(ctx, &orderAPI.GetReq{OrderId: orderId, UserId: userID})
 	for {
-		if err != io.EOF {
-			resp, err := streamResp.Recv()
-			if err != nil {
-				log.Fatal(err)
-			}
-			fmt.Println(resp.OrderStatus)
-		} else {
+		resp, err := streamResp.Recv()
+		if err == io.EOF {
 			break
 		}
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Println(resp.OrderStatus)
 	}
 
 	time.Sleep(3 * time.Second)

@@ -10,8 +10,7 @@ func (h *Handlers) StreamOrderUpdate(req *orderAPI.GetReq, stream orderAPI.Order
 		Order_id: req.OrderId,
 		User_id:  req.UserId,
 	}
-	stateCh, unsubscribe := h.Service.StreamGetState(stream.Context(), key)
-	defer unsubscribe()
+	stateCh := h.Service.StreamGetState(stream.Context(), key)
 
 	for {
 		select {
