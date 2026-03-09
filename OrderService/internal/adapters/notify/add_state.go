@@ -2,7 +2,6 @@ package notify
 
 import (
 	"Academy/gRPCServices/OrderService/internal/domain/order"
-	"fmt"
 )
 
 // Добавление нового статуса заказа
@@ -11,8 +10,7 @@ func (s *StatusStorage) AddNewState(user_id int64, orderId string, statCh chan s
 	for state := range statCh {
 		s.mu.Lock()
 		s.Status[key] = state
-		fmt.Println("Статус обновленн")
-		fmt.Println(s.Status)
+
 		s.mu.Unlock()
 	}
 }

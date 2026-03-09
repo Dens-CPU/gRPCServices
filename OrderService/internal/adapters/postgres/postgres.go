@@ -6,13 +6,15 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"go.uber.org/zap"
 )
 
 type PostgresDB struct {
 	*pgxpool.Pool
+	logger *zap.Logger
 }
 
-func NewDB(ctx context.Context) (*PostgresDB, error) {
+func NewDB(ctx context.Context, logger *zap.Logger) (*PostgresDB, error) {
 	cfg, err := postgresconfig.NewConfig()
 	if err != nil {
 		return nil, err
@@ -39,5 +41,5 @@ func NewDB(ctx context.Context) (*PostgresDB, error) {
 	}
 	defer conn.Release()
 
-	return &PostgresDB{db}, nil
+	return &PostgresDB{db, logger}, nil
 }

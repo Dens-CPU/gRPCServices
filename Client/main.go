@@ -3,7 +3,8 @@ package main
 import (
 	"Academy/gRPCServices/OrderService/pkg/orderclient"
 	orderAPI "Academy/gRPCServices/Protobuf/gen/order"
-	"Academy/gRPCServices/SpotInstrumentService/pkg/opentelimetry"
+	"Academy/gRPCServices/Shared/opentelimetry"
+
 	"io"
 
 	"context"
@@ -12,9 +13,15 @@ import (
 	"time"
 
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
 )
 
 func main() {
+
+	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(
+		propagation.TraceContext{},
+		propagation.Baggage{}))
+
 	tp, err := opentelimetry.NewTrace(context.Background(), "Client")
 	if err != nil {
 		log.Fatal(err)

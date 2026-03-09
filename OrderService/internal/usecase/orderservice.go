@@ -3,6 +3,9 @@ package usecase
 import (
 	"Academy/gRPCServices/OrderService/internal/domain/order"
 	"context"
+
+	"go.opentelemetry.io/otel/sdk/trace"
+	"go.uber.org/zap"
 )
 
 type Storage interface {
@@ -27,8 +30,10 @@ type OrderService struct {
 	Storage
 	MarketsService
 	Notify
+	logger *zap.Logger
+	trace  *trace.TracerProvider
 }
 
-func NewOrderServ(in_memory Storage, markets_service MarketsService, notify Notify) *OrderService {
-	return &OrderService{in_memory, markets_service, notify}
+func NewOrderServ(in_memory Storage, markets_service MarketsService, notify Notify, logger *zap.Logger, trace *trace.TracerProvider) *OrderService {
+	return &OrderService{in_memory, markets_service, notify, logger, trace}
 }

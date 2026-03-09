@@ -1,30 +1,26 @@
 package memory
 
 import (
+	configfile "Academy/gRPCServices/Shared/config"
 	domainmarket "Academy/gRPCServices/SpotInstrumentService/internal/domain/market"
-	"fmt"
-	"os"
+	"io"
 	"regexp"
-
-	"github.com/joho/godotenv"
 )
 
 // Добавление маркетов
 func (s *Storage) AddMarkets() error {
 
-	err := godotenv.Load("./SpotInstrumentService/config/market/.env") //Подгрузка переменной окружения
+	file, err := configfile.NewConfigFile("./SpotInstrumentService/config/market/.env", "MARKETS")
 	if err != nil {
 		return err
 	}
 
-	path := os.Getenv("MARKETS")
-	file, err := os.ReadFile(path) //Чтение файла с рынками
+	str, err := io.ReadAll(file)
 	if err != nil {
-		return fmt.Errorf("ошибка прочтения файла:%w", err)
+		return err
 	}
-
 	re := regexp.MustCompile(`([a-zA-Z0-9]+)+\s?([a-zA-Z0-9]+)?`) //Извление названия рынков и добавление их в хранилище
-	markets := re.FindAllString(string(file), -1)
+	markets := re.FindAllString(string(str), -1)
 	//Заполнение storage
 	for i, m := range markets {
 		s.date[m] = &domainmarket.Market{ID: int64(i), Name: m, Enable: true, Delete_at: nil}

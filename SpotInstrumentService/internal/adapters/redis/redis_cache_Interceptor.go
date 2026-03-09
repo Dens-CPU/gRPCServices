@@ -1,7 +1,6 @@
-package interseptors
+package redisadapter
 
 import (
-	redisadapter "Academy/gRPCServices/SpotInstrumentService/internal/adapters/redis"
 	spoterrors "Academy/gRPCServices/SpotInstrumentService/internal/domain/errors"
 	"context"
 	"encoding/json"
@@ -11,7 +10,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-func RedisCacheInterceptor(cache *redisadapter.RedisDB, ttl time.Duration) grpc.UnaryServerInterceptor {
+func RedisCacheInterceptor(cache *RedisDB, ttl time.Duration) grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
 		req interface{},
@@ -21,7 +20,7 @@ func RedisCacheInterceptor(cache *redisadapter.RedisDB, ttl time.Duration) grpc.
 
 		//Формирование ключа
 		var resp interface{}
-		key, exist := ctx.Value(requestIDKey).(string) //Получение ID зароса из контекста
+		key, exist := ctx.Value("x-request-id").(string) //Получение ID зароса из контекста
 		if !exist {
 			return resp, spoterrors.Unavailable_request_id
 		}

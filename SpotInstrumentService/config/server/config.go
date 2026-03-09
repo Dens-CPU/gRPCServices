@@ -1,10 +1,9 @@
 package serverconfig
 
 import (
+	configfile "Academy/gRPCServices/Shared/config"
 	"fmt"
-	"os"
 
-	"github.com/joho/godotenv"
 	"gopkg.in/yaml.v3"
 )
 
@@ -17,16 +16,8 @@ type Config struct {
 }
 
 func NewConfig() (*Config, error) {
-	//Загрузка файла .env
-	err := godotenv.Load("./SpotInstrumentService/config/.env")
-	if err != nil {
-		return nil, err
-	}
 
-	//Получение пути к конфигу
-	path := os.Getenv("CONFIG_PATH")
-
-	file, err := os.Open(path)
+	file, err := configfile.NewConfigFile("./SpotInstrumentService/config/.env", "SPOT_CONFIG_PATH")
 	if err != nil {
 		return nil, err
 	}

@@ -1,9 +1,9 @@
 package grpcserver
 
 import (
+	"Academy/gRPCServices/Shared/interseptors"
 	serverconfig "Academy/gRPCServices/SpotInstrumentService/config/server"
 	redisadapter "Academy/gRPCServices/SpotInstrumentService/internal/adapters/redis"
-	"Academy/gRPCServices/SpotInstrumentService/pkg/interseptors"
 	"net"
 	"time"
 
@@ -40,7 +40,7 @@ func New(redis *redisadapter.RedisDB) (*Server, error) {
 			interseptors.UnaryPanicRecoveryInterceptor,
 			interseptors.XRequestID,
 			interseptors.LoggerInterseptor,
-			interseptors.RedisCacheInterceptor(redis, 10*time.Minute),
+			redisadapter.RedisCacheInterceptor(redis, 10*time.Minute),
 		),
 		grpc.StatsHandler(otelgrpc.NewServerHandler()),
 	)

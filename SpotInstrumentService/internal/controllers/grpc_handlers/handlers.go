@@ -4,10 +4,11 @@ import (
 	spotAPI "Academy/gRPCServices/Protobuf/gen/spot"
 	domainusers "Academy/gRPCServices/SpotInstrumentService/internal/domain/users"
 	"Academy/gRPCServices/SpotInstrumentService/internal/usecase"
+	"context"
 )
 
 type Service interface {
-	ViewMarket(*domainusers.User) ([]int64, error)
+	ViewMarket(context.Context, *domainusers.User) ([]int64, error)
 }
 
 type Handlers struct {

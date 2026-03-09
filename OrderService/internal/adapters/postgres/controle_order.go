@@ -10,6 +10,7 @@ import (
 func (p *PostgresDB) ControlOrder(orderType string, user_id int64, orderID string) chan string {
 	var wg sync.WaitGroup
 	stateCh := make(chan string, 1)
+
 	wg.Add(1)
 	go func() {
 		defer wg.Done()

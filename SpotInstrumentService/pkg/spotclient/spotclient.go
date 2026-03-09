@@ -4,6 +4,7 @@ import (
 	spotAPI "Academy/gRPCServices/Protobuf/gen/spot"
 	serverconfig "Academy/gRPCServices/SpotInstrumentService/config/server"
 
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
 )
 
@@ -16,7 +17,7 @@ func NewClient() (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	conn, err := grpc.NewClient(cfg.Server.Host+cfg.Server.Port, grpc.WithInsecure())
+	conn, err := grpc.NewClient(cfg.Server.Host+cfg.Server.Port, grpc.WithInsecure(), grpc.WithStatsHandler(otelgrpc.NewClientHandler()))
 	if err != nil {
 		return nil, err
 	}

@@ -2,12 +2,18 @@ package postgres
 
 import (
 	postgresdto "Academy/gRPCServices/OrderService/internal/adapters/dto/postgres"
+	ordererrors "Academy/gRPCServices/OrderService/internal/domain/error"
 	"Academy/gRPCServices/OrderService/internal/domain/order"
 	"time"
 
 	"context"
+
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	"go.uber.org/zap"
 )
 
+// Добавление заказа в БД (таблица orers)
 func (p *PostgresDB) AddOrderStorage(ctx context.Context, newOrder order.Order, marketsID []int64) (string, string, error) {
 
 	dto := postgresdto.CreatOrderDTO(newOrder)
@@ -15,18 +21,27 @@ func (p *PostgresDB) AddOrderStorage(ctx context.Context, newOrder order.Order, 
 	//Начало транзакции
 	tx, err := p.Begin(ctx)
 	if err != nil {
+		p.logger.Error("ошибка начала транзакции:",
+			zap.Error(err),
+		)
 		return "", "", err
 	}
 
 	//Добавление ID заказа
 	refOrderId, orderID, err := p.AddOrderID(tx, ctx, newOrder, marketsID)
 	if err != nil {
+		p.logger.Error("ошибка добавления OrderID:",
+			zap.Error(err),
+		)
 		tx.Rollback(ctx)
 		return "", "", err
 	}
 	//Добавление пользователя
 	refUserID, err := p.AddUserID(tx, ctx, newOrder)
 	if err != nil {
+		p.logger.Error("ошибка добавления UserID:",
+			zap.Error(err),
+		)
 		tx.Rollback(ctx)
 		return "", "", err
 	}
@@ -34,6 +49,9 @@ func (p *PostgresDB) AddOrderStorage(ctx context.Context, newOrder order.Order, 
 	//Добавление рынка
 	refMarketID, err := p.AddMarketID(tx, ctx, newOrder)
 	if err != nil {
+		p.logger.Error("ошибка добавления MarketID:",
+			zap.Error(err),
+		)
 		tx.Rollback(ctx)
 		return "", "", err
 	}
@@ -54,6 +72,9 @@ func (p *PostgresDB) AddOrderStorage(ctx context.Context, newOrder order.Order, 
 	`, dto.Ref_User_Id, dto.Ref_Market_Id, dto.Order_type, dto.Price, dto.Quantity, dto.Status, dto.Ref_Order_Id, dto.Created_at).Scan(&order_status)
 	if err != nil {
 		tx.Rollback(ctx)
+		p.logger.Error("ошибка добавления заказа в БД:",
+			zap.Error(err),
+		)
 		return "", "", err
 	}
 
@@ -62,4 +83,88 @@ func (p *PostgresDB) AddOrderStorage(ctx context.Context, newOrder order.Order, 
 	}
 
 	return orderID, order_status, nil
+}
+
+// Добавленение рынка в БД (таблица markets)
+func (p *PostgresDB) AddMarketID(tx pgx.Tx, ctx context.Context, newOrder order.Order) (int, error) {
+
+	//Инициализация DTO
+	dto := postgresdto.CreateMarketDTO(int(newOrder.Market_id))
+	dto.Created_at = time.Now()
+
+	//Добавление маркета
+	var id int
+	err := tx.QueryRow(ctx, `
+		INSERT INTO markets (market_id, created_at)
+		VALUES ($1, $2)
+		ON CONFLICT (market_id) DO UPDATE
+		SET market_id = EXCLUDED.market_id
+		RETURNING id
+	`, dto.Market_id, dto.Created_at).Scan(&id)
+
+	if err != nil {
+		return 0, err
+	}
+	return id, nil
+}
+
+// Добавление OrderID в БД (таблица orders_id)
+func (p *PostgresDB) AddOrderID(tx pgx.Tx, ctx context.Context, newOrder order.Order, marketsID []int64) (int, string, error) {
+
+	var foundMarket bool //Флаг, показывающий найден нужный рынок или нет
+
+	//Проверка наличия нужного рынка
+	for _, mId := range marketsID {
+		if mId == newOrder.Market_id {
+			foundMarket = true
+			break
+		}
+	}
+	if foundMarket != true {
+		return 0, "", ordererrors.Avalible_markets
+	}
+
+	//Присвоение нового id заказа
+	var orderID string
+	orderID = uuid.New().String()
+
+	//Ининциализация DTO
+	dto := postgresdto.CreateOrders_idDTO(orderID)
+	dto.Created_at = time.Now()
+
+	//Запись в БД
+	var id int
+	err := tx.QueryRow(context.Background(), ` 
+	INSERT INTO orders_id(order_id,created_at) 
+	VALUES ($1,$2)
+	RETURNING id
+	`, dto.Order_id, dto.Created_at).Scan(&id)
+	if err != nil {
+		return 0, "", err
+	}
+
+	return id, orderID, nil
+}
+
+// Добавление UserID в БД (таблица users)
+func (p *PostgresDB) AddUserID(tx pgx.Tx, ctx context.Context, newOrder order.Order) (int, error) {
+	//Инициализация DTO
+	dto := postgresdto.CreateUserDTO(int(newOrder.User_id))
+	dto.Created_at = time.Now()
+
+	//Поиск пользователя с id
+	var id int
+	err := tx.QueryRow(ctx, `
+		INSERT INTO users (user_id, created_at)
+		VALUES ($1, $2)
+		ON CONFLICT (user_id) DO UPDATE
+		SET user_id = EXCLUDED.user_id
+		RETURNING id
+	`, dto.User_id, dto.Created_at).Scan(&id)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return id, nil
 }

@@ -1,6 +1,7 @@
 package interseptors
 
 import (
+	"Academy/gRPCServices/Shared/logger"
 	"context"
 
 	"go.uber.org/zap"
@@ -15,16 +16,7 @@ func LoggerInterseptor(
 	handler grpc.UnaryHandler,
 ) (interface{}, error) {
 
-	// configLog := zap.Config{ //Создание конфига логгера
-	// 	Level:         zap.NewAtomicLevelAt(zap.InfoLevel),
-	// 	Development:   true,
-	// 	Encoding:      "console",
-	// 	EncoderConfig: zap.NewDevelopmentEncoderConfig(),
-	// 	OutputPaths:   []string{"stdout"},
-	// }
-	logger, _ := zap.NewDevelopment()
-	// logger, _ := configLog.Build() //Создание нового логгера
-	defer logger.Sync() //Очистка буффера логгера после работы программы
+	logger, _ := logger.NewLogger()
 
 	//Изъятие ID-запроса из контекста
 	requestID, _ := ctx.Value(requestIDKey).(string)

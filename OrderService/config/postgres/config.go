@@ -1,10 +1,9 @@
 package postgresconfig
 
 import (
+	configfile "Academy/gRPCServices/Shared/config"
 	"fmt"
-	"os"
 
-	"github.com/joho/godotenv"
 	"gopkg.in/yaml.v3"
 )
 
@@ -22,15 +21,10 @@ type Database struct {
 }
 
 func NewConfig() (*Config, error) {
-	//Загрузка файла .env
-	err := godotenv.Load("./OrderService/config/.env")
-	if err != nil {
-		return nil, err
-	}
-	//Получение пути к конфигу
-	path := os.Getenv("ORDER_CONFIG_PATH")
+	path_to_env := "./OrderService/config/.env" //Путь к файлу .env
+	envVarible := "ORDER_CONFIG_PATH"           //Переменная окружения
 
-	file, err := os.Open(path)
+	file, err := configfile.NewConfigFile(path_to_env, envVarible)
 	if err != nil {
 		return nil, err
 	}

@@ -1,4 +1,4 @@
-package redisconfig
+package redis
 
 import (
 	"fmt"
@@ -27,7 +27,7 @@ func NewConfig() (*Config, error) {
 	}
 
 	// Берем путь к yaml
-	path := os.Getenv("CONFIG_PATH")
+	path := os.Getenv("SPOT_CONFIG_PATH")
 
 	file, err := os.Open(path)
 	if err != nil {

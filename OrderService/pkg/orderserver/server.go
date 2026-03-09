@@ -2,7 +2,7 @@ package orderserver
 
 import (
 	serverconfig "Academy/gRPCServices/OrderService/config/server"
-	"Academy/gRPCServices/SpotInstrumentService/pkg/interseptors"
+	"Academy/gRPCServices/Shared/interseptors"
 	"fmt"
 	"net"
 

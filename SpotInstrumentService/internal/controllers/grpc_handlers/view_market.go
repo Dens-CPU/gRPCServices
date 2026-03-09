@@ -9,7 +9,7 @@ import (
 func (h *Handlers) ViewMarket(ctx context.Context, req *spotAPI.ViewReq) (*spotAPI.ViewResp, error) {
 	user := domainusers.NewUser(domainusers.UserType(req.UserRoles)) //Преобразование запроса в доменную структуру User
 
-	output, err := h.Service.ViewMarket(user) //Запрос сервиса на получение доступных рынков
+	output, err := h.Service.ViewMarket(ctx, user) //Запрос сервиса на получение доступных рынков
 	if err != nil {
 		return &spotAPI.ViewResp{}, err
 	}

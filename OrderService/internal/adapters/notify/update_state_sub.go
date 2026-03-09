@@ -2,12 +2,15 @@ package notify
 
 import (
 	"Academy/gRPCServices/OrderService/internal/domain/order"
-	"fmt"
+	"sync"
 	"time"
 )
 
 func (s *StatusStorage) UpdateStatusSubs(key order.Key) {
+	var wg sync.WaitGroup
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		var laststatus string
 		for {
 			status := s.GetStatus(key)
@@ -22,12 +25,15 @@ func (s *StatusStorage) UpdateStatusSubs(key order.Key) {
 			} else {
 				for _, ch := range s.Subs[key] {
 					close(ch)
-					fmt.Println("Канал закрыт")
 				}
 				return
 			}
 			laststatus = status
 			time.Sleep(3 * time.Second)
 		}
+	}()
+
+	go func() {
+		wg.Wait()
 	}()
 }
