@@ -9,13 +9,13 @@ import (
 )
 
 type Storage interface {
-	AddOrderStorage(context.Context, order.Order, []int64) (string, string, error) //Добавление нового заказа в хранилище
-	GetOrderState(context.Context, order.Key) (string, error)                      //Получение статуса заказа
+	AddOrderStorage(context.Context, order.Order, []order.Market) (string, string, error) //Добавление нового заказа в хранилище
+	GetOrderState(context.Context, order.Key) (string, error)                             //Получение статуса заказа
 	ControlOrder(string, int64, string) chan string
 }
 
 type MarketsService interface {
-	GetEnableMarkets(context.Context) ([]int64, error) //Получение списка доступных рынков
+	GetEnableMarkets(context.Context) ([]order.Market, error) //Получение списка доступных рынков
 }
 
 type Notify interface {

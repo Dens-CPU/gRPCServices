@@ -1,7 +1,7 @@
 package orderserver
 
 import (
-	serverconfig "Academy/gRPCServices/OrderService/config/server"
+	ordrerconfig "Academy/gRPCServices/OrderService/config"
 	"Academy/gRPCServices/Shared/interseptors"
 	"fmt"
 	"net"
@@ -15,17 +15,12 @@ type Server struct {
 	Listener net.Listener
 }
 
-func New() (*Server, error) {
+func New(cfg ordrerconfig.Server) (*Server, error) {
 
-	cfg, err := serverconfig.NewConfig()
-	if err != nil {
-		return nil, err
-	}
-
-	host := cfg.Server.Host
-	port := cfg.Server.Port
+	host := cfg.Host
+	port := cfg.Port
 	dsn := fmt.Sprintf("%s:%d", host, port)
-	lis, err := net.Listen(cfg.Server.Network, dsn)
+	lis, err := net.Listen(cfg.Network, dsn)
 	if err != nil {
 		return nil, err
 	}

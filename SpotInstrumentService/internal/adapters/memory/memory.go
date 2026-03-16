@@ -15,13 +15,13 @@ type Storage struct {
 }
 
 // Создание нового хранинлища
-func NewStorage(logger *zap.Logger) (*Storage, error) {
+func NewStorage(logger *zap.Logger, markets []string) (*Storage, error) {
 	s := Storage{
 		date:   make(map[string]*domainmarket.Market),
 		logger: logger,
 	}
 
-	err := s.AddMarkets() //Добавление рынков в хранилище
+	err := s.AddMarkets(markets) //Добавление рынков в хранилище
 	if err != nil {
 		s.logger.Error("Ошибка добавления рынков",
 			zap.Error(err),

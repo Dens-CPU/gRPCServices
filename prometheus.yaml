@@ -1,0 +1,16 @@
+global:
+  scrape_interval: 15s      # Как часто собирать метрики
+  scrape_timeout: 10s       # Ожидание ответа
+  evaluation_interval: 15s  # Как часто проверять правила алертов
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']  # Мониторим сам Prometheus
+
+  - job_name: 'gRPC-services'
+    static_configs:
+      - targets: 
+        - 'host.docker.internal:9464' # Ваше Go-приложение
+        - 'host.docker.internal:9465'
+    metrics_path: /metrics

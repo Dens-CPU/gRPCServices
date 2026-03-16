@@ -3,13 +3,15 @@ package postgresdto
 import (
 	"Academy/gRPCServices/OrderService/internal/domain/order"
 	"time"
+
+	"github.com/shopspring/decimal"
 )
 
 type OrderDTO struct {
 	Ref_User_Id   int
 	Ref_Market_Id int
 	Order_type    string
-	Price         float64
+	Price         decimal.Decimal
 	Quantity      int
 	Status        string
 	Ref_Order_Id  int
@@ -22,8 +24,9 @@ type UsersDTO struct {
 }
 
 type MarketDTO struct {
-	Market_id  int
-	Created_at time.Time
+	Market_id   int
+	Market_name string
+	Created_at  time.Time
 }
 
 type Oreders_idDTO struct {
@@ -44,8 +47,8 @@ func CreateUserDTO(user_id int) *UsersDTO {
 	return &UsersDTO{User_id: user_id}
 }
 
-func CreateMarketDTO(market_id int) *MarketDTO {
-	return &MarketDTO{Market_id: market_id}
+func CreateMarketDTO(market_id int, market_name string) *MarketDTO {
+	return &MarketDTO{Market_id: market_id, Market_name: market_name}
 }
 
 func CreateOrders_idDTO(order_id string) *Oreders_idDTO {

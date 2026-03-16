@@ -1,8 +1,10 @@
 package orderclient
 
 import (
-	serverconfig "Academy/gRPCServices/OrderService/config/server"
+	orderconfig "Academy/gRPCServices/OrderService/config"
 	orderAPI "Academy/gRPCServices/Protobuf/gen/order"
+
+	"Academy/gRPCServices/Shared/config"
 	"fmt"
 
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
@@ -13,10 +15,22 @@ type Client struct {
 	orderAPI.OrderServiceClient
 }
 
+const (
+	globalPathToEnv = "."    //Дериктория, в которой находиться общий файл env
+	envFile         = ".env" //Название файла .env
+	configType      = "yaml" //Тип конфиг файла (yaml)
+
+	pathToLocalEnv = "PATH_ORDERSERVICE_CONFIG_ENV" //Переменная окружения, в которой лежит путь в локально env файлу
+	pathToConfig   = "ORDER_CONFIG_PATH"            //Переменная окружения, в которой лежит путь к конфигу
+)
+
 func NewClient() (*Client, error) {
-	cfg, err := serverconfig.NewConfig()
+	loader := config.NewConfigLoader(globalPathToEnv, envFile, configType, pathToLocalEnv, pathToConfig)
+	cfg, err := config.NewConfig[orderconfig.Config](loader)
 	if err != nil {
-		return nil, err
+
+		return nil, fmt.Errorf("Ошибка получения конфига:%w", err)
+
 	}
 
 	host := cfg.Server.Host

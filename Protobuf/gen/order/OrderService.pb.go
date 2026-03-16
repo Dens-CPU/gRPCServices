@@ -7,12 +7,11 @@
 package orderAPI
 
 import (
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
-
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -126,7 +125,7 @@ type CreateReq struct {
 	UserId        int64                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`         //Идентификатор пользователя
 	MarketId      int64                  `protobuf:"varint,2,opt,name=market_id,json=marketId,proto3" json:"market_id,omitempty"`   // Индентифиактор маркетплейса
 	OrderType     string                 `protobuf:"bytes,3,opt,name=order_type,json=orderType,proto3" json:"order_type,omitempty"` //Тип заказа(Стандарт,экспрес,ко времени)
-	Price         float64                `protobuf:"fixed64,4,opt,name=price,proto3" json:"price,omitempty"`                        //Цена
+	Price         string                 `protobuf:"bytes,4,opt,name=price,proto3" json:"price,omitempty"`                          //Цена
 	Quantity      int64                  `protobuf:"varint,5,opt,name=quantity,proto3" json:"quantity,omitempty"`                   //Количество
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -183,11 +182,11 @@ func (x *CreateReq) GetOrderType() string {
 	return ""
 }
 
-func (x *CreateReq) GetPrice() float64 {
+func (x *CreateReq) GetPrice() string {
 	if x != nil {
 		return x.Price
 	}
-	return 0
+	return ""
 }
 
 func (x *CreateReq) GetQuantity() int64 {
@@ -265,7 +264,7 @@ const file_Protobuf_proto_order_service_OrderService_proto_rawDesc = "" +
 	"\tmarket_id\x18\x02 \x01(\x03R\bmarketId\x12\x1d\n" +
 	"\n" +
 	"order_type\x18\x03 \x01(\tR\torderType\x12\x14\n" +
-	"\x05price\x18\x04 \x01(\x01R\x05price\x12\x1a\n" +
+	"\x05price\x18\x04 \x01(\tR\x05price\x12\x1a\n" +
 	"\bquantity\x18\x05 \x01(\x03R\bquantity\"?\n" +
 	"\n" +
 	"CreateResp\x12\x19\n" +

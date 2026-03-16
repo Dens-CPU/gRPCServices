@@ -14,7 +14,8 @@ func (o *OrderService) CreateOrder(ctx context.Context, newOrder order.Order) (s
 	//Получения списка доступных рынков
 	ctx, span := tracer.Start(ctx, "Get enable markets")
 	defer span.End()
-	marketsID, err := o.GetEnableMarkets(ctx)
+
+	markets, err := o.GetEnableMarkets(ctx)
 	if err != nil {
 		o.logger.Error("ошибка получения доступныхх рынков:",
 			zap.Error(err),
@@ -28,7 +29,7 @@ func (o *OrderService) CreateOrder(ctx context.Context, newOrder order.Order) (s
 	//Создание нового заказа
 	ctx, span = tracer.Start(ctx, "AddOrder")
 	defer span.End()
-	orderID, status, err := o.AddOrderStorage(ctx, newOrder, marketsID)
+	orderID, status, err := o.AddOrderStorage(ctx, newOrder, markets)
 	if err != nil {
 		return "", "", err
 	}

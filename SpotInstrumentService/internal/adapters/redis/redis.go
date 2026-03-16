@@ -1,7 +1,7 @@
 package redisadapter
 
 import (
-	redisconfig "Academy/gRPCServices/SpotInstrumentService/config/redis"
+	spotconfig "Academy/gRPCServices/SpotInstrumentService/config"
 	"context"
 	"fmt"
 	"time"
@@ -13,22 +13,16 @@ type RedisDB struct {
 	client *redis.Client
 }
 
-func NewRedis(ctx context.Context) (*RedisDB, error) {
-
-	//Получение параметров подключения из конфига
-	cfg, err := redisconfig.NewConfig()
-	if err != nil {
-		return nil, err
-	}
+func NewRedis(ctx context.Context, cfg spotconfig.Redis) (*RedisDB, error) {
 
 	//Формирование строки подключения
-	addr := fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port)
+	addr := fmt.Sprintf("%s:%s", cfg.Host, cfg.Port)
 
 	//Инициализация нового Redis клиента
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     addr,
-		Password: cfg.Redis.Password,
-		DB:       cfg.Redis.DB,
+		Password: cfg.Password,
+		DB:       cfg.DB,
 	})
 
 	//Проверка подключения к БД redis

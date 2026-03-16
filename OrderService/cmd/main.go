@@ -2,15 +2,13 @@ package main
 
 import (
 	apprunner "Academy/gRPCServices/OrderService/pkg/appruner"
-	"context"
 	"log"
 )
 
 func main() {
-	ctx := context.Background()
-	
-	err := apprunner.AppRunner(ctx)
+	app, err := apprunner.FxAppRunner()
 	if err != nil {
 		log.Fatal(err)
 	}
+	app.Run()
 }

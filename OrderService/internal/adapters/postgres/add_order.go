@@ -14,7 +14,7 @@ import (
 )
 
 // Добавление заказа в БД (таблица orers)
-func (p *PostgresDB) AddOrderStorage(ctx context.Context, newOrder order.Order, marketsID []int64) (string, string, error) {
+func (p *PostgresDB) AddOrderStorage(ctx context.Context, newOrder order.Order, markets []order.Market) (string, string, error) {
 
 	dto := postgresdto.CreatOrderDTO(newOrder)
 
@@ -28,7 +28,7 @@ func (p *PostgresDB) AddOrderStorage(ctx context.Context, newOrder order.Order, 
 	}
 
 	//Добавление ID заказа
-	refOrderId, orderID, err := p.AddOrderID(tx, ctx, newOrder, marketsID)
+	refOrderId, orderID, err := p.AddOrderID(tx, ctx, newOrder, markets)
 	if err != nil {
 		p.logger.Error("ошибка добавления OrderID:",
 			zap.Error(err),
@@ -47,7 +47,7 @@ func (p *PostgresDB) AddOrderStorage(ctx context.Context, newOrder order.Order, 
 	}
 
 	//Добавление рынка
-	refMarketID, err := p.AddMarketID(tx, ctx, newOrder)
+	refMarketID, err := p.AddMarketID(tx, ctx, newOrder, markets)
 	if err != nil {
 		p.logger.Error("ошибка добавления MarketID:",
 			zap.Error(err),
@@ -86,21 +86,28 @@ func (p *PostgresDB) AddOrderStorage(ctx context.Context, newOrder order.Order, 
 }
 
 // Добавленение рынка в БД (таблица markets)
-func (p *PostgresDB) AddMarketID(tx pgx.Tx, ctx context.Context, newOrder order.Order) (int, error) {
+func (p *PostgresDB) AddMarketID(tx pgx.Tx, ctx context.Context, newOrder order.Order, markets []order.Market) (int, error) {
+	var marketName string
+
+	for _, m := range markets {
+		if m.ID == newOrder.Market_id {
+			marketName = m.Name
+		}
+	}
 
 	//Инициализация DTO
-	dto := postgresdto.CreateMarketDTO(int(newOrder.Market_id))
+	dto := postgresdto.CreateMarketDTO(int(newOrder.Market_id), marketName)
 	dto.Created_at = time.Now()
 
 	//Добавление маркета
 	var id int
 	err := tx.QueryRow(ctx, `
-		INSERT INTO markets (market_id, created_at)
-		VALUES ($1, $2)
+		INSERT INTO markets (name,market_id, created_at)
+		VALUES ($1, $2, $3)
 		ON CONFLICT (market_id) DO UPDATE
 		SET market_id = EXCLUDED.market_id
 		RETURNING id
-	`, dto.Market_id, dto.Created_at).Scan(&id)
+	`, dto.Market_name, dto.Market_id, dto.Created_at).Scan(&id)
 
 	if err != nil {
 		return 0, err
@@ -109,13 +116,13 @@ func (p *PostgresDB) AddMarketID(tx pgx.Tx, ctx context.Context, newOrder order.
 }
 
 // Добавление OrderID в БД (таблица orders_id)
-func (p *PostgresDB) AddOrderID(tx pgx.Tx, ctx context.Context, newOrder order.Order, marketsID []int64) (int, string, error) {
+func (p *PostgresDB) AddOrderID(tx pgx.Tx, ctx context.Context, newOrder order.Order, markets []order.Market) (int, string, error) {
 
 	var foundMarket bool //Флаг, показывающий найден нужный рынок или нет
 
 	//Проверка наличия нужного рынка
-	for _, mId := range marketsID {
-		if mId == newOrder.Market_id {
+	for _, m := range markets {
+		if m.ID == newOrder.Market_id {
 			foundMarket = true
 			break
 		}

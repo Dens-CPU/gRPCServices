@@ -2,8 +2,10 @@ package apprunner
 
 import (
 	spotAPI "Academy/gRPCServices/Protobuf/gen/spot"
+	"Academy/gRPCServices/Shared/config"
 	"Academy/gRPCServices/Shared/logger"
 	"Academy/gRPCServices/Shared/opentelimetry"
+	spotconfig "Academy/gRPCServices/SpotInstrumentService/config"
 	"Academy/gRPCServices/SpotInstrumentService/internal/adapters/memory"
 	redisadapter "Academy/gRPCServices/SpotInstrumentService/internal/adapters/redis"
 	spothandlers "Academy/gRPCServices/SpotInstrumentService/internal/controllers/grpc_handlers"
@@ -11,13 +13,18 @@ import (
 	grpcserver "Academy/gRPCServices/SpotInstrumentService/pkg/spotserver"
 	"context"
 	"fmt"
+	"log"
+	"net/http"
 	"sync"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
 	"go.uber.org/zap"
 )
+
+var markets = []string{"Yandex Market", "OZON", "Wildberis", "AliExpress"}
 
 func AppRunner() error {
 
@@ -29,7 +36,7 @@ func AppRunner() error {
 	defer logger.Sync()
 
 	//Инициализация хранилища
-	storage, err := memory.NewStorage(logger)
+	storage, err := memory.NewStorage(logger, markets)
 	if err != nil {
 		return err
 	}
@@ -47,12 +54,22 @@ func AppRunner() error {
 		logger.Info(msg)
 	}()
 
+	//Получение нового конфига
+	loader := config.NewConfigLoader(globalPathToEnv, envFile, configType, pathToLocalEnv, pathToConfig)
+	config, err := config.NewConfig[spotconfig.Config](loader)
+	if err != nil {
+		logger.Error("ошибка получения конфига:",
+			zap.Error(err),
+		)
+		return err
+	}
+
 	//Создание контекста для redis
 	rctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	//Инициализация redis
-	redis, err := redisadapter.NewRedis(rctx)
+	redis, err := redisadapter.NewRedis(rctx, config.Redis)
 	if err != nil {
 		logger.Error("ошибка инициализации redis:",
 			zap.Error(err))
@@ -73,6 +90,20 @@ func AppRunner() error {
 	}
 	defer trace.Shutdown(context.Background())
 
+	//Инициализация метрик
+	metric, err := opentelimetry.NewMetricPrometeus(context.Background(), "SpotService")
+	if err != nil {
+		logger.Error("ошибка инициализации метрик:",
+			zap.Error(err))
+		return err
+	}
+	defer metric.Shutdown(context.Background())
+	// Http сервис для сбора метрик
+	go func() {
+		http.Handle("/metrics", promhttp.Handler())
+		log.Fatal(http.ListenAndServe(":9464", nil))
+	}()
+
 	//Инициализая нового сервиса
 	service := usecase.NewSpotInstrument(storage, logger, trace)
 
@@ -80,7 +111,7 @@ func AppRunner() error {
 	handlers := spothandlers.NewHandlers(service)
 
 	//Инициализация нового grpc сервера
-	grpcServer, err := grpcserver.New(redis)
+	grpcServer, err := grpcserver.New(redis, config.Server)
 	if err != nil {
 		logger.Error("ошибка инициализации grpc-сервера:",
 			zap.Error(err),

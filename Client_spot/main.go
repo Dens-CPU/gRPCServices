@@ -30,6 +30,12 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
+	metrics, err := opentelimetry.NewMetricPrometeus(context.Background(), "SpotClient")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer metrics.Shutdown(context.Background())
+
 	// Подключение к серверу gRPC с OTel stats handler
 	conn, err := grpc.NewClient(
 		"localhost:8080",

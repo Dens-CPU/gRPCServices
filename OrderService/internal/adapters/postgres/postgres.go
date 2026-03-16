@@ -1,7 +1,7 @@
 package postgres
 
 import (
-	postgresconfig "Academy/gRPCServices/OrderService/config/postgres"
+	orderconfig "Academy/gRPCServices/OrderService/config"
 	"context"
 	"fmt"
 
@@ -14,19 +14,16 @@ type PostgresDB struct {
 	logger *zap.Logger
 }
 
-func NewDB(ctx context.Context, logger *zap.Logger) (*PostgresDB, error) {
-	cfg, err := postgresconfig.NewConfig()
-	if err != nil {
-		return nil, err
-	}
+func NewDB(ctx context.Context, logger *zap.Logger, cfg orderconfig.Postgres) (*PostgresDB, error) {
+
 	dsn := fmt.Sprintf(
 		"postgres://%s:%s@%s:%d/%s?sslmode=%s",
-		cfg.Postgres.User,
-		cfg.Postgres.Password,
-		cfg.Postgres.Host,
-		cfg.Postgres.Port,
-		cfg.Postgres.Name,
-		cfg.Postgres.Sslmode,
+		cfg.User,
+		cfg.Password,
+		cfg.Host,
+		cfg.Port,
+		cfg.Name,
+		cfg.Sslmode,
 	)
 	fmt.Println(dsn)
 	db, err := pgxpool.New(ctx, dsn)

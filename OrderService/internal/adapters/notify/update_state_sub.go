@@ -12,9 +12,11 @@ func (s *StatusStorage) UpdateStatusSubs(key order.Key) {
 	go func() {
 		defer wg.Done()
 		var laststatus string
+
 		for {
 			status := s.GetStatus(key)
 			if laststatus != status {
+
 				// Рассылаем всем подписчикам
 				for _, ch := range s.Subs[key] {
 					select {

@@ -2,7 +2,7 @@ package grpcserver
 
 import (
 	"Academy/gRPCServices/Shared/interseptors"
-	serverconfig "Academy/gRPCServices/SpotInstrumentService/config/server"
+	spotconfig "Academy/gRPCServices/SpotInstrumentService/config"
 	redisadapter "Academy/gRPCServices/SpotInstrumentService/internal/adapters/redis"
 	"net"
 	"time"
@@ -18,18 +18,12 @@ type Server struct {
 }
 
 // Создание нового сервера
-func New(redis *redisadapter.RedisDB) (*Server, error) {
-
-	//Получение параметров подключения из конфига
-	cfg, err := serverconfig.NewConfig()
-	if err != nil {
-		return nil, err
-	}
+func New(redis *redisadapter.RedisDB, cfg spotconfig.Server) (*Server, error) {
 
 	//Инициализация интерфеса listener
-	host := cfg.Server.Host
-	port := cfg.Server.Port
-	lis, err := net.Listen(cfg.Server.Network, host+port)
+	host := cfg.Host
+	port := cfg.Port
+	lis, err := net.Listen(cfg.Network, host+port)
 	if err != nil {
 		return nil, err
 	}

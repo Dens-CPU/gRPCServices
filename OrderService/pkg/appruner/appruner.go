@@ -1,6 +1,7 @@
-package apprunner
+package appruner
 
 import (
+	orderconfig "Academy/gRPCServices/OrderService/config"
 	"Academy/gRPCServices/OrderService/internal/adapters/notify"
 	"Academy/gRPCServices/OrderService/internal/adapters/postgres"
 	spotservice "Academy/gRPCServices/OrderService/internal/adapters/spot_service"
@@ -8,6 +9,7 @@ import (
 	"Academy/gRPCServices/OrderService/internal/usecase"
 	"Academy/gRPCServices/OrderService/pkg/orderserver"
 	orderAPI "Academy/gRPCServices/Protobuf/gen/order"
+	"Academy/gRPCServices/Shared/config"
 	"Academy/gRPCServices/Shared/logger"
 	"Academy/gRPCServices/Shared/opentelimetry"
 	"context"
@@ -19,13 +21,24 @@ import (
 )
 
 func AppRunner(ctx context.Context) error {
+	//Инициализация нового логгера
 	logger, err := logger.NewLogger()
 	if err != nil {
 		return fmt.Errorf("ошибка инициализации логгера:%w", err)
 	}
 	defer logger.Sync()
 
-	storage, err := postgres.NewDB(ctx, logger) //Инициализаця хранилища postgres
+	//Получение нового конфига
+	loader := config.NewConfigLoader(globalPathToEnv, envFile, configType, pathToLocalEnv, pathToConfig)
+	cfg, err := config.NewConfig[orderconfig.Config](loader)
+	if err != nil {
+		logger.Error("ошибка получения нового конфига:",
+			zap.Error(err),
+		)
+	}
+
+	//Инициализаця хранилища postgres
+	storage, err := postgres.NewDB(ctx, logger, cfg.Postgres)
 	if err != nil {
 		logger.Error("ошибка инициализации хранилища:",
 			zap.Error(err),
@@ -33,6 +46,7 @@ func AppRunner(ctx context.Context) error {
 		return err
 	}
 
+	//Инициализация spotClient
 	spotClient, err := spotservice.NewClient()
 	if err != nil {
 		logger.Error("ошибка инициализации хранилища:",
@@ -41,6 +55,7 @@ func AppRunner(ctx context.Context) error {
 		return err
 	}
 
+	//Инициализация сервиса нотификаций
 	notify := notify.NewStatStorage()
 
 	//Инициализация трейсера
@@ -58,11 +73,14 @@ func AppRunner(ctx context.Context) error {
 
 	defer trace.Shutdown(ctx)
 
+	//Инициализация сервиса обработки
 	service := usecase.NewOrderServ(storage, spotClient, notify, logger, trace)
 
+	//Инициализация обработчиков
 	handlers := orderhandlers.NewHandlers(service)
 
-	grpcServer, err := orderserver.New()
+	//Инициализация нового gRPC сервера
+	grpcServer, err := orderserver.New(cfg.Server)
 	if err != nil {
 		logger.Error("ошибка инициализации grpc-сервера:",
 			zap.Error(err),
@@ -70,8 +88,10 @@ func AppRunner(ctx context.Context) error {
 		return err
 	}
 
+	//Регистрация методов
 	orderAPI.RegisterOrderServiceServer(grpcServer, handlers)
 
+	//Запуск работы сервера
 	fmt.Println("Сервер работает на порту 8081...")
 	err = grpcServer.Serve(grpcServer.Listener)
 	if err != nil {

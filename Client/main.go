@@ -28,15 +28,18 @@ func main() {
 	}
 	defer tp.Shutdown(context.Background())
 
+	metric, _ := opentelimetry.NewMetricPrometeus(context.Background(), "Client")
+	defer metric.Shutdown(context.Background())
+
 	client, err := orderclient.NewClient()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Инициализация клиента:", err)
 	}
 	var (
 		userID    int64
 		marketID  int64
 		orderType string
-		price     float64
+		price     string
 		quantity  int64
 	)
 

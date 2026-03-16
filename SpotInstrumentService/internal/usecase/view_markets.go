@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	viewdto "Academy/gRPCServices/SpotInstrumentService/internal/adapters/dto"
 	domainerrors "Academy/gRPCServices/SpotInstrumentService/internal/domain/errors"
 	domainmarket "Academy/gRPCServices/SpotInstrumentService/internal/domain/market"
 	domainusers "Academy/gRPCServices/SpotInstrumentService/internal/domain/users"
@@ -10,7 +11,7 @@ import (
 )
 
 // Получение доступных рынков
-func (s *SpotService) ViewMarket(ctx context.Context, user *domainusers.User) ([]int64, error) {
+func (s *SpotService) ViewMarket(ctx context.Context, user *domainusers.User) ([]viewdto.Output, error) {
 
 	var enableMarkets []*domainmarket.Market
 	tracer := s.trace.Tracer("SpotSevrvice")
@@ -30,10 +31,10 @@ func (s *SpotService) ViewMarket(ctx context.Context, user *domainusers.User) ([
 }
 
 // Маппер для ViewMarket
-func Mapper(em []*domainmarket.Market) []int64 {
-	var resp []int64
+func Mapper(em []*domainmarket.Market) []viewdto.Output {
+	var resp []viewdto.Output
 	for _, el := range em {
-		resp = append(resp, el.ID)
+		resp = append(resp, viewdto.Output{ID: el.ID, Name: el.Name})
 	}
 	return resp
 }

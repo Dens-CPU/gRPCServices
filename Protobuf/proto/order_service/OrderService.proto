@@ -30,7 +30,7 @@ message CreateReq{
 int64 user_id  = 1; //Идентификатор пользователя
 int64 market_id = 2; // Индентифиактор маркетплейса
 string order_type = 3; //Тип заказа(Стандарт,экспрес,ко времени)
-double price = 4; //Цена
+string price = 4; //Цена
 int64 quantity = 5; //Количество
 }
 

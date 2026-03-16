@@ -5,11 +5,12 @@ import "go.uber.org/zap"
 func NewLogger() (*zap.Logger, error) {
 
 	configLog := zap.Config{ //Создание конфига логгера
-		Level:         zap.NewAtomicLevelAt(zap.InfoLevel),
-		Development:   true,
-		Encoding:      "console",
-		EncoderConfig: zap.NewDevelopmentEncoderConfig(),
-		OutputPaths:   []string{"stdout"},
+		Level:            zap.NewAtomicLevelAt(zap.InfoLevel),
+		Development:      true,
+		Encoding:         "console",
+		EncoderConfig:    zap.NewDevelopmentEncoderConfig(),
+		OutputPaths:      []string{"stdout"},
+		ErrorOutputPaths: []string{"stderr"},
 	}
 
 	logger, err := configLog.Build()

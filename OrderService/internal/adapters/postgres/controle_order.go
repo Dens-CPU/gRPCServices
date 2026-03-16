@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"sync"
-	"time"
 )
 
 func (p *PostgresDB) ControlOrder(orderType string, user_id int64, orderID string) chan string {
@@ -33,7 +32,7 @@ func (p *PostgresDB) ControlOrder(orderType string, user_id int64, orderID strin
 		switch orderType {
 
 		case "normal":
-			time.Sleep(5 * time.Second)
+			//time.Sleep(5 * time.Second)
 			status = "in progress"
 			err = p.UpdateStatus(id, status)
 			if err != nil {
@@ -41,7 +40,7 @@ func (p *PostgresDB) ControlOrder(orderType string, user_id int64, orderID strin
 				return
 			}
 			stateCh <- status
-			time.Sleep(5 * time.Second)
+			//time.Sleep(5 * time.Second)
 			status = "completed"
 			err = p.UpdateStatus(id, status)
 			if err != nil {
@@ -51,7 +50,7 @@ func (p *PostgresDB) ControlOrder(orderType string, user_id int64, orderID strin
 			stateCh <- status
 
 		case "express":
-			time.Sleep(2 * time.Second)
+			// time.Sleep(2 * time.Second)
 			status = "in progress"
 			err = p.UpdateStatus(id, status)
 			if err != nil {
@@ -60,7 +59,7 @@ func (p *PostgresDB) ControlOrder(orderType string, user_id int64, orderID strin
 			}
 			stateCh <- status
 
-			time.Sleep(2 * time.Second)
+			//time.Sleep(2 * time.Second)
 			status = "completed"
 			err = p.UpdateStatus(id, status)
 			if err != nil {

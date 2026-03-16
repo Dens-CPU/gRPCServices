@@ -22,5 +22,10 @@ enum User_Roles{
 
 //Ответ для ViewMarket
 message ViewResp{
-    repeated int64 enable_markets = 1;
+    repeated Markets enable_markets = 1;
+}
+
+message Markets{
+    int64 market_id = 1;
+    string market_name = 2;
 }

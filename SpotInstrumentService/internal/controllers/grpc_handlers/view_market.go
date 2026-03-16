@@ -14,6 +14,13 @@ func (h *Handlers) ViewMarket(ctx context.Context, req *spotAPI.ViewReq) (*spotA
 		return &spotAPI.ViewResp{}, err
 	}
 
-	resp := &spotAPI.ViewResp{EnableMarkets: output} //Формирование ответа сервера
+	resp := &spotAPI.ViewResp{}
+	resp.EnableMarkets = make([]*spotAPI.Markets, 0, len(output))
+
+	for _, el := range output {
+		market := spotAPI.Markets{MarketId: el.ID, MarketName: el.Name}
+		resp.EnableMarkets = append(resp.EnableMarkets, &market)
+	}
+	//Формирование ответа сервера
 	return resp, nil
 }
