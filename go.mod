@@ -1,4 +1,4 @@
-module Academy/gRPCServices
+module github.com/Dens-CPU/gRPCServices
 
 go 1.25.0
 
