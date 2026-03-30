@@ -1,12 +1,23 @@
 server:
-  port: "8081"
-  host: "localhost"
+  port: 
+  host: 
   network: "tcp"
 
 postgres:
-  host: "localhost"
-  port: "5432"
-  user: "postgres"
-  password: "12345"
-  name: "order_service"
+  host: 
+  port: 
+  user: 
+  password: 
+  name: 
   sslmode: "disable"
+
+breakersetting:
+  name: "OrderService"
+  max_request: 5
+  interval: 60
+  timeout: 10
+  max_fail_request: 10
+
+jaeger:
+  host: 
+  port: 

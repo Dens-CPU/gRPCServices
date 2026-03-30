@@ -1,11 +1,11 @@
-package order
+package orderdomain
 
 import "github.com/shopspring/decimal"
 
 // Структура закакза
 type Order struct {
-	User_id    int64
-	Market_id  int64
+	User_id    string
+	Market_id  string
 	Order_type string
 	Price      decimal.Decimal
 	Quantity   int64
@@ -13,11 +13,11 @@ type Order struct {
 }
 
 type Key struct {
-	User_id  int64
+	User_id  string //uuid
 	Order_id string
 }
 
 type Market struct {
-	ID   int64
+	ID   string
 	Name string
 }

@@ -1,6 +1,6 @@
 package memory
 
-import domainmarket "Academy/gRPCServices/SpotInstrumentService/internal/domain/market"
+import domainmarket "github.com/DencCPU/gRPCServices/SpotInstrumentService/internal/domain/market"
 
 // Получение доступных рынков
 func (s *Storage) GetEnableMarkets() []*domainmarket.Market {

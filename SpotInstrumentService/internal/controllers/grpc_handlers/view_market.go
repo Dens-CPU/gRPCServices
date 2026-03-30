@@ -1,19 +1,29 @@
 package spothandlers
 
 import (
-	spot "Academy/gRPCServices/Protobuf/gen/spot_service"
-	domainusers "Academy/gRPCServices/SpotInstrumentService/internal/domain/users"
 	"context"
+	"fmt"
+
+	spot "github.com/DencCPU/gRPCServices/Protobuf/gen/spot_service"
+	domainusers "github.com/DencCPU/gRPCServices/SpotInstrumentService/internal/domain/users"
 )
 
 func (h *Handlers) ViewMarket(ctx context.Context, req *spot.ViewReq) (*spot.ViewResp, error) {
-	user := domainusers.NewUser(domainusers.UserType(req.UserRoles)) //Преобразование запроса в доменную структуру User
+	//Валидация
+	err := req.Validate()
+	if err != nil {
+		return nil, fmt.Errorf("неправильный формат запроса:%w", err)
+	}
 
-	output, err := h.Service.ViewMarket(ctx, user) //Запрос сервиса на получение доступных рынков
+	//Преобразование запроса в доменную структуру User
+	user := domainusers.NewUser(domainusers.UserType(req.UserRoles))
+	//Запрос сервиса на получение доступных рынков
+	output, err := h.Service.ViewMarket(ctx, user)
 	if err != nil {
 		return &spot.ViewResp{}, err
 	}
 
+	//Формирование ответа
 	resp := &spot.ViewResp{}
 	resp.EnableMarkets = make([]*spot.Markets, 0, len(output))
 
@@ -21,6 +31,5 @@ func (h *Handlers) ViewMarket(ctx context.Context, req *spot.ViewReq) (*spot.Vie
 		market := spot.Markets{MarketId: el.ID, MarketName: el.Name}
 		resp.EnableMarkets = append(resp.EnableMarkets, &market)
 	}
-	//Формирование ответа сервера
 	return resp, nil
 }

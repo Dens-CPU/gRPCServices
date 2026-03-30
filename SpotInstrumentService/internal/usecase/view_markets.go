@@ -1,12 +1,12 @@
 package usecase
 
 import (
-	viewdto "Academy/gRPCServices/SpotInstrumentService/internal/adapters/dto"
-	domainerrors "Academy/gRPCServices/SpotInstrumentService/internal/domain/errors"
-	domainmarket "Academy/gRPCServices/SpotInstrumentService/internal/domain/market"
-	domainusers "Academy/gRPCServices/SpotInstrumentService/internal/domain/users"
 	"context"
 
+	viewdto "github.com/DencCPU/gRPCServices/SpotInstrumentService/internal/adapters/dto"
+	spoterrors "github.com/DencCPU/gRPCServices/SpotInstrumentService/internal/domain/errors"
+	domainmarket "github.com/DencCPU/gRPCServices/SpotInstrumentService/internal/domain/market"
+	domainusers "github.com/DencCPU/gRPCServices/SpotInstrumentService/internal/domain/users"
 	"go.uber.org/zap"
 )
 
@@ -14,15 +14,14 @@ import (
 func (s *SpotService) ViewMarket(ctx context.Context, user *domainusers.User) ([]viewdto.Output, error) {
 
 	var enableMarkets []*domainmarket.Market
-	tracer := s.trace.Tracer("SpotSevrvice")
-	ctx, span := tracer.Start(ctx, "get enable markets")
+	ctx, span := s.tracer.Start(ctx, "get enable markets")
 	defer span.End()
 
 	enableMarkets = s.GetEnableMarkets()
 
 	if len(enableMarkets) == 0 {
 		s.logger.Error("Нет доступных рынков")
-		return nil, domainerrors.Avalible_markets
+		return nil, spoterrors.Avalible_markets
 	}
 	s.logger.Info("Список доступных рынков получен",
 		zap.String("get enable markets span:", span.SpanContext().TraceID().String()),

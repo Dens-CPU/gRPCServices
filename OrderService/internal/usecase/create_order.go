@@ -1,18 +1,16 @@
 package usecase
 
 import (
-	"Academy/gRPCServices/OrderService/internal/domain/order"
 	"context"
+	"fmt"
 
+	orderdomain "github.com/DencCPU/gRPCServices/OrderService/internal/domain/order"
 	"go.uber.org/zap"
 )
 
-func (o *OrderService) CreateOrder(ctx context.Context, newOrder order.Order) (string, string, error) {
-
-	tracer := o.trace.Tracer("OrderService")
-
+func (o *OrderService) CreateOrder(ctx context.Context, newOrder orderdomain.Order) (string, string, error) {
 	//Получения списка доступных рынков
-	ctx, span := tracer.Start(ctx, "Get enable markets")
+	ctx, span := o.tracer.Start(ctx, "Get enable markets")
 	defer span.End()
 
 	markets, err := o.GetEnableMarkets(ctx)
@@ -27,7 +25,7 @@ func (o *OrderService) CreateOrder(ctx context.Context, newOrder order.Order) (s
 	)
 
 	//Создание нового заказа
-	ctx, span = tracer.Start(ctx, "AddOrder")
+	ctx, span = o.tracer.Start(ctx, "AddOrder")
 	defer span.End()
 	orderID, status, err := o.AddOrderStorage(ctx, newOrder, markets)
 	if err != nil {
@@ -39,6 +37,7 @@ func (o *OrderService) CreateOrder(ctx context.Context, newOrder order.Order) (s
 	)
 
 	//Выполнение заказа
+	fmt.Println("Запущено выполнение заказа")
 	stateCh := o.ControlOrder(newOrder.Order_type, newOrder.User_id, orderID)
 
 	go o.Notify.AddNewState(newOrder.User_id, orderID, stateCh)

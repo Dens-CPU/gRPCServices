@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package spot_service.v2;
+
+import "validate/validate.proto";
+
+option go_package = "github.com/DensCPU/gRPCServices/Protobuf/gen/spot_service"; //Нужно ли указывать версию (spot_service/v2)???
+
+//Предоставления данных о рынках
+service SpotInstrumentService {
+  rpc ViewMarket(ViewReq) returns (ViewResp); //Проверка доступных рынков
+}
+
+//Запрос для ViewMarket
+message ViewReq {
+  UserRole user_roles = 1; //Поле для юзера
+}
+
+enum UserRole {
+  USER_ROLE_UNSPECIFIED = 0;
+  USER_ROLE_BASIC_USER = 1;
+  USER_ROLE_PREMIUM_USER = 2;
+}
+
+//Ответ для ViewMarket
+message ViewResp {
+  repeated Markets enable_markets = 1;
+}
+
+message Markets {
+  string market_id = 1 [(validate.rules).string.uuid = true];
+  string market_name = 2 [(validate.rules).string.min_len = 1];
+}

@@ -1,12 +1,13 @@
 package orderserver
 
 import (
-	ordrerconfig "Academy/gRPCServices/OrderService/config"
-	"Academy/gRPCServices/Shared/interseptors"
 	"fmt"
 	"net"
 
+	orderconfig "github.com/DencCPU/gRPCServices/OrderService/config"
+	"github.com/DencCPU/gRPCServices/Shared/interseptors"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
 
@@ -15,7 +16,7 @@ type Server struct {
 	Listener net.Listener
 }
 
-func New(cfg ordrerconfig.Server) (*Server, error) {
+func New(cfg orderconfig.Server, logger *zap.Logger) (*Server, error) {
 
 	host := cfg.Host
 	port := cfg.Port
@@ -27,9 +28,9 @@ func New(cfg ordrerconfig.Server) (*Server, error) {
 
 	newServer := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
-			interseptors.UnaryPanicRecoveryInterceptor,
+			interseptors.UnaryPanicRecoveryInterceptor(logger),
 			interseptors.XRequestID,
-			interseptors.LoggerInterseptor,
+			interseptors.LoggerInterseptor(logger),
 		), grpc.StatsHandler(otelgrpc.NewServerHandler()))
 
 	return &Server{newServer, lis}, nil

@@ -1,4 +1,4 @@
-package opentelimetry
+package opentelemetry
 
 import (
 	"context"
@@ -10,18 +10,20 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.37.0"
 )
 
-func NewTrace(ctx context.Context, serviceName string) (*sdktrace.TracerProvider, error) {
+func NewTrace(ctx context.Context, serviceName, host, port string) (*sdktrace.TracerProvider, error) {
 
 	exporter, err := otlptracegrpc.New(ctx,
 		otlptracegrpc.WithInsecure(),
-		otlptracegrpc.WithEndpoint("localhost:4317"),
+		otlptracegrpc.WithEndpoint(host+":"+port),
 	)
 	if err != nil {
 		return nil, err
 	}
+	sampler := sdktrace.TraceIDRatioBased(0.3) //Процент выборки для обработки спанов 30%
 
 	tp := sdktrace.NewTracerProvider(
-		sdktrace.WithBatcher(exporter),
+		sdktrace.WithBatcher(exporter), //Обработка спанов пачками
+		sdktrace.WithSampler(sampler),
 		sdktrace.WithResource(
 			resource.NewWithAttributes(
 				semconv.SchemaURL,

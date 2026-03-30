@@ -3,6 +3,7 @@ package spotconfig
 type Config struct {
 	Redis  Redis  `mapstructure:"redis"`
 	Server Server `mapstructure:"server"`
+	Jaeger Jaeger `mapstructure:"jaeger"`
 }
 
 type Redis struct {
@@ -16,4 +17,9 @@ type Server struct {
 	Port    string `mapstructure:"port"`
 	Host    string `mapstructure:"host"`
 	Network string `mapstructure:"network"`
+}
+
+type Jaeger struct {
+	Host string `mapstructure:"host"`
+	Port string `mapstructure:"port"`
 }

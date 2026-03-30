@@ -1,6 +1,6 @@
 package viewdto
 
 type Output struct {
-	ID   int64
+	ID   string
 	Name string
 }

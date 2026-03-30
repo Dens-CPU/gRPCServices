@@ -1,12 +1,13 @@
 package notify
 
 import (
-	"Academy/gRPCServices/OrderService/internal/domain/order"
 	"sync"
 	"time"
+
+	orderdomain "github.com/DencCPU/gRPCServices/OrderService/internal/domain/order"
 )
 
-func (s *StatusStorage) UpdateStatusSubs(key order.Key) {
+func (s *StatusStorage) UpdateStatusSubs(key orderdomain.Key) {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {

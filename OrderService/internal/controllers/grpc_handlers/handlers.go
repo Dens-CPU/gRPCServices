@@ -1,20 +1,21 @@
 package orderhandlers
 
 import (
-	"Academy/gRPCServices/OrderService/internal/domain/order"
-	"Academy/gRPCServices/OrderService/internal/usecase"
-	orderAPI "Academy/gRPCServices/Protobuf/gen/order"
 	"context"
+
+	orderdomain "github.com/DencCPU/gRPCServices/OrderService/internal/domain/order"
+	"github.com/DencCPU/gRPCServices/OrderService/internal/usecase"
+	order "github.com/DencCPU/gRPCServices/Protobuf/gen/order_service"
 )
 
 type Service interface {
-	CreateOrder(context.Context, order.Order) (string, string, error)
-	GetStatus(context.Context, order.Key) (string, error)
-	StreamGetState(ctx context.Context, key order.Key) chan string
+	CreateOrder(context.Context, orderdomain.Order) (string, string, error)
+	GetStatus(context.Context, orderdomain.Key) (string, error)
+	StreamGetState(ctx context.Context, key orderdomain.Key) chan string
 }
 
 type Handlers struct {
-	orderAPI.UnimplementedOrderServiceServer
+	order.UnimplementedOrderServiceServer
 	Service Service
 }
 

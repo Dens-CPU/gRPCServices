@@ -1,12 +1,13 @@
 package postgres
 
 import (
-	postgresdto "Academy/gRPCServices/OrderService/internal/adapters/dto/postgres"
-	ordererrors "Academy/gRPCServices/OrderService/internal/domain/error"
-	"Academy/gRPCServices/OrderService/internal/domain/order"
 	"time"
 
 	"context"
+
+	postgresdto "github.com/DencCPU/gRPCServices/OrderService/internal/adapters/dto/postgres"
+	ordererrors "github.com/DencCPU/gRPCServices/OrderService/internal/domain/error"
+	orderdomain "github.com/DencCPU/gRPCServices/OrderService/internal/domain/order"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -14,7 +15,7 @@ import (
 )
 
 // Добавление заказа в БД (таблица orers)
-func (p *PostgresDB) AddOrderStorage(ctx context.Context, newOrder order.Order, markets []order.Market) (string, string, error) {
+func (p *PostgresDB) AddOrderStorage(ctx context.Context, newOrder orderdomain.Order, markets []orderdomain.Market) (string, string, error) {
 
 	dto := postgresdto.CreatOrderDTO(newOrder)
 
@@ -86,7 +87,7 @@ func (p *PostgresDB) AddOrderStorage(ctx context.Context, newOrder order.Order, 
 }
 
 // Добавленение рынка в БД (таблица markets)
-func (p *PostgresDB) AddMarketID(tx pgx.Tx, ctx context.Context, newOrder order.Order, markets []order.Market) (int, error) {
+func (p *PostgresDB) AddMarketID(tx pgx.Tx, ctx context.Context, newOrder orderdomain.Order, markets []orderdomain.Market) (int, error) {
 	var marketName string
 
 	for _, m := range markets {
@@ -96,7 +97,7 @@ func (p *PostgresDB) AddMarketID(tx pgx.Tx, ctx context.Context, newOrder order.
 	}
 
 	//Инициализация DTO
-	dto := postgresdto.CreateMarketDTO(int(newOrder.Market_id), marketName)
+	dto := postgresdto.CreateMarketDTO(newOrder.Market_id, marketName)
 	dto.Created_at = time.Now()
 
 	//Добавление маркета
@@ -116,7 +117,7 @@ func (p *PostgresDB) AddMarketID(tx pgx.Tx, ctx context.Context, newOrder order.
 }
 
 // Добавление OrderID в БД (таблица orders_id)
-func (p *PostgresDB) AddOrderID(tx pgx.Tx, ctx context.Context, newOrder order.Order, markets []order.Market) (int, string, error) {
+func (p *PostgresDB) AddOrderID(tx pgx.Tx, ctx context.Context, newOrder orderdomain.Order, markets []orderdomain.Market) (int, string, error) {
 
 	var foundMarket bool //Флаг, показывающий найден нужный рынок или нет
 
@@ -154,9 +155,9 @@ func (p *PostgresDB) AddOrderID(tx pgx.Tx, ctx context.Context, newOrder order.O
 }
 
 // Добавление UserID в БД (таблица users)
-func (p *PostgresDB) AddUserID(tx pgx.Tx, ctx context.Context, newOrder order.Order) (int, error) {
+func (p *PostgresDB) AddUserID(tx pgx.Tx, ctx context.Context, newOrder orderdomain.Order) (int, error) {
 	//Инициализация DTO
-	dto := postgresdto.CreateUserDTO(int(newOrder.User_id))
+	dto := postgresdto.CreateUserDTO(newOrder.User_id)
 	dto.Created_at = time.Now()
 
 	//Поиск пользователя с id

@@ -2,25 +2,27 @@ package interseptors
 
 import (
 	"context"
-	"log"
 
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 // Обработка паники
-func UnaryPanicRecoveryInterceptor(
-	ctx context.Context,
-	req interface{},
-	info *grpc.UnaryServerInfo,
-	handler grpc.UnaryHandler,
-) (resp interface{}, err error) {
-	defer func() {
-		if r := recover(); r != nil {
-			log.Printf("pacinc recover. Method:%s.Panic:%v.", info.FullMethod, r) //Логируем панику с указанием вызываемого метода, перехваченной паники.
-			err = status.Errorf(codes.Internal, "interal servrer error")          //Указание номера ошикби
-		}
-	}()
-	return handler(ctx, req)
+func UnaryPanicRecoveryInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
+	return func(
+		ctx context.Context,
+		req interface{},
+		info *grpc.UnaryServerInfo,
+		handler grpc.UnaryHandler,
+	) (resp interface{}, err error) {
+		defer func() {
+			if r := recover(); r != nil {
+				logger.Info("panic recover",
+					zap.String("Method:", info.FullMethod), //Метод, при котором была вызвана паника
+					zap.Any("Panic:", r),                   //Сама паника
+				)
+			}
+		}()
+		return handler(ctx, req)
+	}
 }

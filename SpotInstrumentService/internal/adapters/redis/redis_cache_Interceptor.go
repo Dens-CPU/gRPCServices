@@ -1,12 +1,12 @@
 package redisadapter
 
 import (
-	spoterrors "Academy/gRPCServices/SpotInstrumentService/internal/domain/errors"
 	"context"
 	"encoding/json"
 	"fmt"
 	"time"
 
+	spoterrors "github.com/DencCPU/gRPCServices/SpotInstrumentService/internal/domain/errors"
 	"google.golang.org/grpc"
 )
 

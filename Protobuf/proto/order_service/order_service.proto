@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+package order_service.v2;
+
+import "google/protobuf/timestamp.proto";
+import "validate/validate.proto";
+
+option go_package = "github.com/DensCPU/gRPCServices/Protobuf/gen/order_service";
+
+//Сервис управления заказами
+service OrderService {
+  rpc GetOrderStatus(GetOrderReq) returns (GetOrderResp); //Получение информации о заказе
+  rpc CreateOrder(CreateOrderReq) returns (CreateOrderResp); //Создание заказа
+  rpc StreamOrderUpdate(StreamOrderUpdateReq) returns (stream StreamOrderUpdateResp); //Получение актульного статуса заказа
+}
+
+//Запрос для GetOrderStatus
+message GetOrderReq {
+  string order_id = 1 [(validate.rules).string.uuid = true]; //ID заказа
+  string user_id = 2 [(validate.rules).string.uuid = true]; //ID пользователя
+}
+
+//Ответ для GetOrderStatus
+message GetOrderResp {
+  string order_status = 1 [(validate.rules).string.min_len = 1]; //Статус заказа
+  string order_id = 2 [(validate.rules).string.uuid = true]; //ID заказа
+}
+
+//Запрос для CreateOrder
+message CreateOrderReq {
+  string user_id = 1 [(validate.rules).string.min_len = 1]; //Идентификатор пользователя
+  string market_id = 2 [(validate.rules).string.uuid = true]; // Индентифиактор маркетплейса
+  OrderType order_type = 3; //Тип заказа(Стандарт,экспрес,по времени)
+  string price = 4 [(validate.rules).string = {//Цена
+    min_len: 1
+    max_len: 10
+  }];
+  int64 quantity = 5 [(validate.rules).int64.gte = 1]; //Количество
+}
+
+enum OrderType {
+  ORDER_TYPE_UNSPECIFIED = 0;
+  ORDER_TYPE_NORMAL = 1;
+  ORDER_TYPE_EXPRESS = 2;
+}
+
+//Ответ для CreateOrder
+message CreateOrderResp {
+  string order_id = 1 [(validate.rules).string.uuid = true]; //Идентификатор заказа
+  string order_status = 2 [(validate.rules).string.min_len = 1]; //Статус заказа
+}
+
+message StreamOrderUpdateReq {
+  string order_id = 1 [(validate.rules).string.min_len = 1]; //ID заказа
+  string user_id = 2 [(validate.rules).string.uuid = true]; //ID пользователя
+}
+
+message StreamOrderUpdateResp {
+  string order_status = 1 [(validate.rules).string.min_len = 1];
+  google.protobuf.Timestamp update_status_time = 2;
+}

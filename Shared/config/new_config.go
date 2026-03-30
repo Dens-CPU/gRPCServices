@@ -2,10 +2,8 @@ package config
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
-	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
 )
 
@@ -32,79 +30,53 @@ func NewConfigLoader(globalPathToEnv, envFile, configType, pathToLocalEnv, pathT
 	return &loader
 }
 
-// Создание нового конфига
 func NewConfig[T any](loader *ConfigLoader) (*T, error) {
-
-	// Глобальный Viper. Читает переменные окружения из внешнего env файла, в котором указаны пути к локальным файлам env в сервисах
 	globalViper := viper.New()
 	globalViper.AddConfigPath(loader.GlobalPathToEnv)
 	globalViper.SetConfigFile(loader.EnvFile)
 	globalViper.SetConfigType(loader.EnvType)
 
-	//Прочтения содержимого файла
-	err := globalViper.ReadInConfig()
-	if err != nil {
+	if err := globalViper.ReadInConfig(); err != nil {
 		return nil, err
 	}
 
-	//Использование переменных окружения и получения пути к env файлу сервиса
-	globalViper.AutomaticEnv()
-
 	pathLocalEnv := globalViper.GetString(loader.PathToLocalEnv)
-	// fmt.Println(pathLocalEnv)
-
-	//Создание локального viper для работы внутри сервиса. Поиск файла по полученному адресу
-	localViper := viper.New()
-	localViper.SetConfigFile(pathLocalEnv)
-	localViper.SetConfigType(loader.EnvType)
-
-	//Прочтение содержимого env файла
-	err = localViper.ReadInConfig()
-	if err != nil {
-		return nil, fmt.Errorf("ошибка чтения env файла из %s: %w", pathLocalEnv, err)
-	}
-	// fmt.Println("Все ключи из localViper:", localViper.AllKeys())
-
-	//Использование переменных окружения и получения пути к конфигу сервиса
-	localViper.AutomaticEnv()
-	pathConfig := localViper.GetString(loader.PathToConfig)
-	// fmt.Println(pathConfig)
-
-	//Подгрузка переменных окружения из env файла сервиса
-	err = godotenv.Load(pathLocalEnv)
-	if err != nil {
-		return nil, fmt.Errorf("ошибка загрузки локальных переменных окружения:%w", err)
+	if pathLocalEnv == "" {
+		return nil, fmt.Errorf("переменная %s не установлена", loader.PathToLocalEnv)
 	}
 
-	//Получение данных из конфига
-	content, err := os.ReadFile(pathConfig)
-	if err != nil {
-		return nil, fmt.Errorf("не удалось прочитать конфиг:%s.%w", pathConfig, err)
+	envViper := viper.New()
+	envViper.SetConfigFile(pathLocalEnv)
+	envViper.SetConfigType(loader.EnvType)
+
+	if err := envViper.ReadInConfig(); err != nil {
+		return nil, fmt.Errorf("ошибка чтения .env: %w", err)
 	}
 
-	//Применение значений из переменных окружения
-	expandedContent := os.ExpandEnv(string(content))
-	// fmt.Println(expandedContent)
+	pathConfig := envViper.GetString(loader.PathToConfig)
+	if pathConfig == "" {
+		return nil, fmt.Errorf("переменная %s не установлена", loader.PathToConfig)
+	}
 
-	//Поиск файла по полученному адресу
-	localViper.SetConfigFile(pathConfig)
-	localViper.SetConfigType(loader.ConfigType)
+	configViper := viper.New()
+	configViper.SetConfigFile(pathConfig)
+	configViper.SetConfigType(loader.ConfigType)
 
-	//Прочтение заполненного конфига
-	err = localViper.ReadConfig(strings.NewReader(expandedContent))
-	if err != nil {
-		switch err.(type) {
-		case viper.ConfigFileNotFoundError:
-			return nil, fmt.Errorf("конфиг файл не найден:%w", err)
-		default:
-			return nil, fmt.Errorf("ошибка прочтения конфига:%w", err)
+	if err := configViper.ReadInConfig(); err != nil {
+		return nil, err
+	}
+
+	for _, key := range envViper.AllKeys() {
+		configKey := strings.ToLower(strings.ReplaceAll(key, "_", "."))
+		if val := envViper.Get(key); val != nil {
+			configViper.Set(configKey, val)
 		}
 	}
 
-	//Парсиг конфига
+	// 6. Парсим
 	var cfg T
-	if err := localViper.Unmarshal(&cfg); err != nil {
-		return nil, fmt.Errorf("ошибка парсинга конфига: %w", err)
+	if err := configViper.Unmarshal(&cfg); err != nil {
+		return nil, err
 	}
 
 	return &cfg, nil

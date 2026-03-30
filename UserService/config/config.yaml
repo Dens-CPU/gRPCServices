@@ -1,0 +1,12 @@
+server:
+  port: 
+  host: 
+  network: "tcp"
+
+postgres:
+  host: 
+  port: 
+  user: 
+  password: 
+  name: 
+  sslmode: "disable"

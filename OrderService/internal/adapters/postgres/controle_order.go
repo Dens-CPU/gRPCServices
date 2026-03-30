@@ -6,7 +6,7 @@ import (
 	"sync"
 )
 
-func (p *PostgresDB) ControlOrder(orderType string, user_id int64, orderID string) chan string {
+func (p *PostgresDB) ControlOrder(orderType string, user_id string, orderID string) chan string {
 	var wg sync.WaitGroup
 	stateCh := make(chan string, 1)
 
@@ -28,7 +28,7 @@ func (p *PostgresDB) ControlOrder(orderType string, user_id int64, orderID strin
 			fmt.Println("ошибка обработки заказа:", err)
 			return
 		}
-
+		fmt.Println("ID заказа:", id)
 		switch orderType {
 
 		case "normal":

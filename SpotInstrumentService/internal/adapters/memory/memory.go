@@ -1,9 +1,9 @@
 package memory
 
 import (
-	domainmarket "Academy/gRPCServices/SpotInstrumentService/internal/domain/market"
 	"sync"
 
+	domainmarket "github.com/DencCPU/gRPCServices/SpotInstrumentService/internal/domain/market"
 	"go.uber.org/zap"
 )
 
@@ -15,18 +15,11 @@ type Storage struct {
 }
 
 // Создание нового хранинлища
-func NewStorage(logger *zap.Logger, markets []string) (*Storage, error) {
+func NewStorage(logger *zap.Logger) (*Storage, error) {
 	s := Storage{
 		date:   make(map[string]*domainmarket.Market),
 		logger: logger,
 	}
 
-	err := s.AddMarkets(markets) //Добавление рынков в хранилище
-	if err != nil {
-		s.logger.Error("Ошибка добавления рынков",
-			zap.Error(err),
-		)
-		return nil, err
-	}
 	return &s, nil
 }

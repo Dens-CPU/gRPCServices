@@ -1,16 +1,15 @@
 package usecase
 
 import (
-	"Academy/gRPCServices/OrderService/internal/domain/order"
 	"context"
 
+	orderdomain "github.com/DencCPU/gRPCServices/OrderService/internal/domain/order"
 	"go.uber.org/zap"
 )
 
-func (o *OrderService) GetStatus(ctx context.Context, key order.Key) (string, error) {
-	tracer := o.trace.Tracer("OrderService")
+func (o *OrderService) GetStatus(ctx context.Context, key orderdomain.Key) (string, error) {
 
-	ctx, span := tracer.Start(ctx, "Get status")
+	ctx, span := o.tracer.Start(ctx, "Get status")
 	defer span.End()
 	status, err := o.GetOrderState(ctx, key)
 	if err != nil {

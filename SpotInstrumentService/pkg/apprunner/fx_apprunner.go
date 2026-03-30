@@ -1,26 +1,28 @@
 package apprunner
 
 import (
-	spotAPI "Academy/gRPCServices/Protobuf/gen/spot"
-	"Academy/gRPCServices/Shared/config"
-	"Academy/gRPCServices/Shared/logger"
-	"Academy/gRPCServices/Shared/opentelimetry"
-	spotconfig "Academy/gRPCServices/SpotInstrumentService/config"
-	"Academy/gRPCServices/SpotInstrumentService/internal/adapters/memory"
-	redisadapter "Academy/gRPCServices/SpotInstrumentService/internal/adapters/redis"
-	spothandlers "Academy/gRPCServices/SpotInstrumentService/internal/controllers/grpc_handlers"
-	"Academy/gRPCServices/SpotInstrumentService/internal/usecase"
-	grpcserver "Academy/gRPCServices/SpotInstrumentService/pkg/spotserver"
 	"context"
 	"fmt"
 	"net/http"
 	"time"
 
+	spot "github.com/DencCPU/gRPCServices/Protobuf/gen/spot_service"
+	"github.com/DencCPU/gRPCServices/Shared/config"
+	entryspotservice "github.com/DencCPU/gRPCServices/Shared/enter_points/entry_spot_service"
+	"github.com/DencCPU/gRPCServices/Shared/logger"
+	opentelemetry "github.com/DencCPU/gRPCServices/Shared/opentelimetry"
+	spotconfig "github.com/DencCPU/gRPCServices/SpotInstrumentService/config"
+	"github.com/DencCPU/gRPCServices/SpotInstrumentService/internal/adapters/memory"
+	redisadapter "github.com/DencCPU/gRPCServices/SpotInstrumentService/internal/adapters/redis"
+	spothandlers "github.com/DencCPU/gRPCServices/SpotInstrumentService/internal/controllers/grpc_handlers"
+	"github.com/DencCPU/gRPCServices/SpotInstrumentService/internal/usecase"
+	grpcserver "github.com/DencCPU/gRPCServices/SpotInstrumentService/pkg/spotserver"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
-	"go.opentelemetry.io/otel/sdk/trace"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 )
@@ -52,16 +54,29 @@ func LoggerModul() fx.Option {
 
 // Подключение In-memory хранилища
 func StorageModul() fx.Option {
-	var markets = []string{"Yandex Market", "OZON", "Wildberis", "AliExpress"}
-
 	return fx.Options(
 		fx.Provide(
 			func(logger *zap.Logger) (*memory.Storage, error) {
-				storage, err := memory.NewStorage(logger, markets)
+
+				storage, err := memory.NewStorage(logger)
 				if err != nil {
 					return nil, err
 				}
 				return storage, nil
+			},
+		),
+		fx.Invoke(
+			func(lc fx.Lifecycle, logger *zap.Logger, storage *memory.Storage) {
+				marketsPath := "./SpotInstrumentService/config/market/markets.txt"
+				lc.Append(fx.Hook{
+					OnStart: func(ctx context.Context) error {
+						err := storage.AddMarkets(marketsPath)
+						if err != nil {
+							return err
+						}
+						return nil
+					},
+				})
 			},
 		),
 		fx.Invoke(
@@ -87,7 +102,13 @@ func StorageModul() fx.Option {
 func NewConfigModul() fx.Option {
 	return fx.Provide(
 		func() *config.ConfigLoader {
-			loader := config.NewConfigLoader(globalPathToEnv, envFile, configType, pathToLocalEnv, pathToConfig)
+			loader := config.NewConfigLoader(
+				entryspotservice.GlobalPathToEnv,
+				entryspotservice.EnvFile,
+				entryspotservice.ConfigType,
+				entryspotservice.PathToLocalEnv,
+				entryspotservice.PathToConfig,
+			)
 			return loader
 		},
 		func(loader *config.ConfigLoader, logger *zap.Logger) (*spotconfig.Config, error) {
@@ -124,22 +145,23 @@ func RedisModule() fx.Option {
 func TracingModule() fx.Option {
 	return fx.Options(
 		fx.Provide(
-			func(logger *zap.Logger) (*trace.TracerProvider, error) {
+			func(logger *zap.Logger, config *spotconfig.Config) (*sdktrace.TracerProvider, trace.Tracer, error) {
 				otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(
 					propagation.TraceContext{},
 					propagation.Baggage{},
 				))
-				trace, err := opentelimetry.NewTrace(context.Background(), "spotService")
+				trace, err := opentelemetry.NewTrace(context.Background(), "spotService", config.Jaeger.Host, config.Jaeger.Port)
 				if err != nil {
 					logger.Error("ошибка инициализации трейсера:",
 						zap.Error(err))
-					return nil, err
+					return nil, nil, err
 				}
-				return trace, nil
+				tracer := trace.Tracer("SpotService")
+				return trace, tracer, nil
 			},
 		),
 		fx.Invoke(
-			func(lc fx.Lifecycle, trace *trace.TracerProvider) {
+			func(lc fx.Lifecycle, trace *sdktrace.TracerProvider) {
 				lc.Append(fx.Hook{
 					OnStop: func(ctx context.Context) error {
 						return trace.Shutdown(ctx)
@@ -155,7 +177,7 @@ func MetricModul() fx.Option {
 	return fx.Options(
 		fx.Provide(
 			func(logger *zap.Logger) (*sdkmetric.MeterProvider, error) {
-				provider, err := opentelimetry.NewMetricPrometeus(context.Background(), "SpotService")
+				provider, err := opentelemetry.NewMetricPrometeus(context.Background(), "SpotService")
 				if err != nil {
 					logger.Error("ошибка инициализации метрик:",
 						zap.Error(err))
@@ -194,7 +216,7 @@ func MetricModul() fx.Option {
 // Подключение сервиса обработки
 func ServiceModule() fx.Option {
 	return fx.Provide(
-		func(storage *memory.Storage, logger *zap.Logger, trace *trace.TracerProvider) *usecase.SpotService {
+		func(storage *memory.Storage, logger *zap.Logger, trace trace.Tracer) *usecase.SpotService {
 			return usecase.NewSpotInstrument(storage, logger, trace)
 		},
 	)
@@ -214,7 +236,7 @@ func GrpcModule() fx.Option {
 	return fx.Options(
 		fx.Provide(
 			func(redis *redisadapter.RedisDB, config *spotconfig.Config, logger *zap.Logger) (*grpcserver.Server, error) {
-				grpcServer, err := grpcserver.New(redis, config.Server)
+				grpcServer, err := grpcserver.New(redis, config.Server, logger)
 				if err != nil {
 					logger.Error("ошибка инициализации grpc-сервера:",
 						zap.Error(err),
@@ -228,7 +250,7 @@ func GrpcModule() fx.Option {
 		fx.Invoke(
 			func(lc fx.Lifecycle, server *grpcserver.Server, handlers *spothandlers.Handlers, logger *zap.Logger) {
 				//Регистрация grpc методов в сервере
-				spotAPI.RegisterSpotInstrumentServiceServer(server, handlers)
+				spot.RegisterSpotInstrumentServiceServer(server, handlers)
 
 				lc.Append(fx.Hook{
 					OnStart: func(ctx context.Context) error {

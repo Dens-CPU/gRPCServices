@@ -15,7 +15,6 @@ func XRequestID(
 	handler grpc.UnaryHandler,
 ) (interface{}, error) {
 	md, ok := metadata.FromIncomingContext(ctx)
-	xctx := context.Background()
 	if ok {
 		values := md.Get(requestIDKey)
 		var id string
@@ -24,9 +23,9 @@ func XRequestID(
 		} else {
 			id = uuid.New().String()
 		}
-		xctx = context.WithValue(ctx, requestIDKey, id)
+		ctx = context.WithValue(ctx, requestIDKey, id)
 	} else {
-		xctx = context.WithValue(ctx, requestIDKey, uuid.New().String())
+		ctx = context.WithValue(ctx, requestIDKey, uuid.New().String())
 	}
-	return handler(xctx, req)
+	return handler(ctx, req)
 }

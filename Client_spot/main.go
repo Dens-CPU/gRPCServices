@@ -1,13 +1,13 @@
 package main
 
 import (
-	spotAPI "Academy/gRPCServices/Protobuf/gen/spot"
-	"Academy/gRPCServices/Shared/opentelimetry"
 	"context"
 	"fmt"
 	"log"
 	"time"
 
+	spot "github.com/DencCPU/gRPCServices/Protobuf/gen/spot_service"
+	opentelemetry "github.com/DencCPU/gRPCServices/Shared/opentelimetry"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
@@ -20,7 +20,7 @@ func main() {
 		propagation.TraceContext{},
 		propagation.Baggage{}))
 
-	trace, err := opentelimetry.NewTrace(context.Background(), "Client_spot")
+	trace, err := opentelemetry.NewTrace(context.Background(), "Client_spot", "localhost", "4317")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -30,7 +30,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	metrics, err := opentelimetry.NewMetricPrometeus(context.Background(), "SpotClient")
+	metrics, err := opentelemetry.NewMetricPrometeus(context.Background(), "SpotClient")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -48,13 +48,13 @@ func main() {
 	defer conn.Close()
 
 	// Создаём клиент
-	client := spotAPI.NewSpotInstrumentServiceClient(conn)
+	client := spot.NewSpotInstrumentServiceClient(conn)
 	tracer := trace.Tracer("Client_spot")
 	ctx, span := tracer.Start(ctx, "View market")
 	defer span.End()
 
 	// Делаем запрос
-	resp, err := client.ViewMarket(ctx, &spotAPI.ViewReq{})
+	resp, err := client.ViewMarket(ctx, &spot.ViewReq{})
 	if err != nil {
 		log.Fatal(err)
 	}

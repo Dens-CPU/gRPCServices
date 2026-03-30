@@ -1,11 +1,12 @@
 package postgres
 
 import (
-	"Academy/gRPCServices/OrderService/internal/domain/order"
 	"context"
+
+	orderdomain "github.com/DencCPU/gRPCServices/OrderService/internal/domain/order"
 )
 
-func (p *PostgresDB) GetOrderState(ctx context.Context, key order.Key) (string, error) {
+func (p *PostgresDB) GetOrderState(ctx context.Context, key orderdomain.Key) (string, error) {
 	var status string
 
 	err := p.QueryRow(ctx, `

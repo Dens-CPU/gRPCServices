@@ -1,8 +1,10 @@
 package orderconfig
 
 type Config struct {
-	Server   Server   `mapstructure:"server"`
-	Postgres Postgres `mapstructure:"postgres"`
+	Server         Server         `mapstructure:"server"`
+	Postgres       Postgres       `mapstructure:"postgres"`
+	BreakerSetting BreakerSetting `mapsstructure:"breakersetting"`
+	Jaeger         Jaeger         `mapsstructure:"jaeger"`
 }
 type Server struct {
 	Port    int    `mapstructure:"port"`
@@ -17,4 +19,17 @@ type Postgres struct {
 	Password string `mapstructure:"password"`
 	Name     string `mapstructure:"name"`
 	Sslmode  string `mapstructure:"sslmode"`
+}
+
+type BreakerSetting struct {
+	Name           string `mapstructure:"name"`             //Название брейкера
+	MaxRequests    uint32 `mapstructure:"max_request"`      //Максимально кол-во запросов, пропускаемых в полуоткрытом режиме(Half-open)
+	Interval       uint   `mapstructure:"interval"`         //Период сброса статистики подсчета неудачных запросов в закрытом режиме(Close). Время в секундах.
+	Timeout        uint   `mapstructure:"timeout"`          //Время прибывания брейкера в открытом состоянии, перед переходов в Half-open.
+	MaxFailRequest uint32 `mapstructure:"max_fail_request"` //Количество неудачных запросов, после которого брейкер перейдет в состояние Open
+}
+
+type Jaeger struct {
+	Host string `mapstructure:"host"`
+	Port string `mapstructure:"port"`
 }

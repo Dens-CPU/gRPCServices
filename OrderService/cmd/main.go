@@ -1,8 +1,9 @@
 package main
 
 import (
-	apprunner "Academy/gRPCServices/OrderService/pkg/appruner"
 	"log"
+
+	"github.com/DencCPU/gRPCServices/OrderService/pkg/apprunner"
 )
 
 func main() {

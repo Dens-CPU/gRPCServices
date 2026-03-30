@@ -1,10 +1,10 @@
 package postgres
 
 import (
-	orderconfig "Academy/gRPCServices/OrderService/config"
 	"context"
 	"fmt"
 
+	orderconfig "github.com/DencCPU/gRPCServices/OrderService/config"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
 )

@@ -1,11 +1,12 @@
 package spothandlers
 
 import (
-	spot "Academy/gRPCServices/Protobuf/gen/spot_service"
-	viewdto "Academy/gRPCServices/SpotInstrumentService/internal/adapters/dto"
-	domainusers "Academy/gRPCServices/SpotInstrumentService/internal/domain/users"
-	"Academy/gRPCServices/SpotInstrumentService/internal/usecase"
 	"context"
+
+	spot "github.com/DencCPU/gRPCServices/Protobuf/gen/spot_service"
+	viewdto "github.com/DencCPU/gRPCServices/SpotInstrumentService/internal/adapters/dto"
+	domainusers "github.com/DencCPU/gRPCServices/SpotInstrumentService/internal/domain/users"
+	"github.com/DencCPU/gRPCServices/SpotInstrumentService/internal/usecase"
 )
 
 type Service interface {

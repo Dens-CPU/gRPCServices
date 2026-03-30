@@ -1,13 +1,14 @@
 package grpcserver
 
 import (
-	"Academy/gRPCServices/Shared/interseptors"
-	spotconfig "Academy/gRPCServices/SpotInstrumentService/config"
-	redisadapter "Academy/gRPCServices/SpotInstrumentService/internal/adapters/redis"
 	"net"
 	"time"
 
+	"github.com/DencCPU/gRPCServices/Shared/interseptors"
+	spotconfig "github.com/DencCPU/gRPCServices/SpotInstrumentService/config"
+	redisadapter "github.com/DencCPU/gRPCServices/SpotInstrumentService/internal/adapters/redis"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
 
@@ -18,12 +19,12 @@ type Server struct {
 }
 
 // Создание нового сервера
-func New(redis *redisadapter.RedisDB, cfg spotconfig.Server) (*Server, error) {
+func New(redis *redisadapter.RedisDB, cfg spotconfig.Server, logger *zap.Logger) (*Server, error) {
 
 	//Инициализация интерфеса listener
 	host := cfg.Host
 	port := cfg.Port
-	lis, err := net.Listen(cfg.Network, host+port)
+	lis, err := net.Listen(cfg.Network, host+":"+port)
 	if err != nil {
 		return nil, err
 	}
@@ -31,9 +32,9 @@ func New(redis *redisadapter.RedisDB, cfg spotconfig.Server) (*Server, error) {
 	//Регистрация интерсепторов на сервере
 	newServer := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
-			interseptors.UnaryPanicRecoveryInterceptor,
+			interseptors.UnaryPanicRecoveryInterceptor(logger),
 			interseptors.XRequestID,
-			interseptors.LoggerInterseptor,
+			interseptors.LoggerInterseptor(logger),
 			redisadapter.RedisCacheInterceptor(redis, 10*time.Minute),
 		),
 		grpc.StatsHandler(otelgrpc.NewServerHandler()),

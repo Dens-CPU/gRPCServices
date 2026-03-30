@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package user_service.v1;
+
+import "google/protobuf/duration.proto";
+import "validate/validate.proto";
+
+option go_package = "github.com/DensCPU/gRPCServices/Protobuf/gen/user_service";
+
+service UserService {
+  rpc CreateUser(CreateUserReq) returns (CreateUserResp);
+}
+
+message CreateUserReq {
+  string name = 1 [(validate.rules).string.min_len = 2];
+  string email = 2 [(validate.rules).string.email = true];
+  string password = 3 [(validate.rules).string.min_len = 8];
+  UserRole user_role = 4;
+}
+
+message CreateUserResp {
+  string accsess_token = 1 [(validate.rules).string.min_len = 1];
+  string refresh_token = 2 [(validate.rules).string.uuid = true];
+  google.protobuf.Duration expire_at = 3 [(validate.rules).duration.gt = {seconds: 0}];
+}
+
+enum UserRole {
+  USER_ROLE_UNSPECIFIED = 0;
+  USER_ROLE_BASIC_USER = 1;
+  USER_ROLE_PREMIUM_USER = 2;
+}

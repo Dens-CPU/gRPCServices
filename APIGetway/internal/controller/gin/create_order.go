@@ -1,9 +1,9 @@
 package gin
 
 import (
-	"Academy/gRPCServices/APIGetway/internal/domain/order"
 	"net/http"
 
+	"github.com/DencCPU/gRPCServices/APIGetway/internal/domain/order"
 	"github.com/gin-gonic/gin"
 )
 

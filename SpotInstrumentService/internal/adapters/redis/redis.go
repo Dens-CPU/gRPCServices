@@ -1,11 +1,11 @@
 package redisadapter
 
 import (
-	spotconfig "Academy/gRPCServices/SpotInstrumentService/config"
 	"context"
 	"fmt"
 	"time"
 
+	spotconfig "github.com/DencCPU/gRPCServices/SpotInstrumentService/config"
 	"github.com/redis/go-redis/v9"
 )
 

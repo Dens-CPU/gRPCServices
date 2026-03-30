@@ -1,15 +1,31 @@
 package memory
 
 import (
-	domainmarket "Academy/gRPCServices/SpotInstrumentService/internal/domain/market"
+	"errors"
+	"fmt"
+	"os"
+	"regexp"
+
+	domainmarket "github.com/DencCPU/gRPCServices/SpotInstrumentService/internal/domain/market"
+	"github.com/google/uuid"
 )
 
 // Добавление маркетов
-func (s *Storage) AddMarkets(markets []string) error {
-
-	//Заполнение storage
-	for i, m := range markets {
-		s.date[m] = &domainmarket.Market{ID: int64(i), Name: m, Enable: true, Delete_at: nil}
+func (s *Storage) AddMarkets(path string) error {
+	file, err := os.ReadFile(path)
+	if err != nil {
+		return fmt.Errorf("ошибка прочтения файла:%w", err)
 	}
+	re := regexp.MustCompile(`([a-zA-Z0-9]+)+\s?([a-zA-Z0-9]+)?`)
+	markets := re.FindAllString(string(file), -1)
+	//Заполнение storage
+	if len(markets) == 0 {
+		return errors.New("Список рынков пуст")
+	}
+	for _, m := range markets {
+		id := uuid.New().String()
+		s.date[m] = &domainmarket.Market{ID: id, Name: m, Enable: true, Delete_at: nil}
+	}
+
 	return nil
 }
