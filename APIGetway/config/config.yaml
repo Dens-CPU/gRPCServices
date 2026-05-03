@@ -1,0 +1,14 @@
+server:
+  port: 
+  host: 
+
+breakersetting:
+  name: "APIGetway"
+  max_request: 5
+  interval: 60
+  timeout: 10
+  max_fail_request: 10
+
+jaeger:
+  host: 
+  port: 
