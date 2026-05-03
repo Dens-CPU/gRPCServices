@@ -1,14 +1,16 @@
 package gin
 
 import (
+	"fmt"
 	"net/http"
 
-	"github.com/DencCPU/gRPCServices/APIGetway/internal/domain/order"
+	orderdomain "github.com/DencCPU/gRPCServices/APIGetway/internal/domain/order"
 	"github.com/gin-gonic/gin"
 )
 
 func (api *GinAPI) CreateOrderHandler(c *gin.Context) {
-	var order order.OrderInfo
+	var order orderdomain.OrderInfo
+
 	err := c.ShouldBindJSON(&order)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -16,22 +18,47 @@ func (api *GinAPI) CreateOrderHandler(c *gin.Context) {
 		})
 		return
 	}
-	uid, exist := c.Get("x-user-id")
+	r, exist := c.Get("x-user-role")
 	if !exist {
 		c.JSON(http.StatusBadGateway, gin.H{
-			"error": "user_id missing",
+			"error": "user role missing",
+		})
+		c.Abort()
+		return
+	}
+
+	role, ok := r.(string)
+	if !ok {
+		c.JSON(http.StatusBadGateway, gin.H{
+			"error": "error casting user_role to string type",
 		})
 		return
 	}
-	user_id, ok := uid.(string)
+
+	switch role {
+	case "basic":
+		order.UserRole = orderdomain.USER_ROLE_BASIC_USER
+	case "premium":
+		order.UserRole = orderdomain.USER_ROLE_PREMIUM_USER
+	}
+
+	uid, exist := c.Get("x-user-id")
+	if !exist {
+		c.JSON(http.StatusBadGateway, gin.H{
+			"error": "user id missing",
+		})
+		c.Abort()
+		return
+	}
+
+	order.UserId, ok = uid.(string)
 	if !ok {
 		c.JSON(http.StatusBadGateway, gin.H{
 			"error": "error casting user_id to string type",
 		})
 		return
 	}
-	order.User_id = user_id
-
+	fmt.Println(order)
 	output, err := api.service.CreateOrder(c.Request.Context(), order)
 	if err != nil {
 		c.JSON(http.StatusBadGateway, gin.H{
@@ -40,7 +67,7 @@ func (api *GinAPI) CreateOrderHandler(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{
-		"order_id":     output.Order_id,
-		"order_status": output.Order_status,
+		"order_id":     output.OrderId,
+		"order_status": output.OrderStatus,
 	})
 }

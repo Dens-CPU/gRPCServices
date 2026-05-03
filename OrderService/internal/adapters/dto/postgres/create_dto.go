@@ -8,49 +8,55 @@ import (
 )
 
 type OrderDTO struct {
-	Ref_User_Id   int
-	Ref_Market_Id int
-	Order_type    string
-	Price         decimal.Decimal
-	Quantity      int
-	Status        string
-	Ref_Order_Id  int
-	Created_at    time.Time
+	RefUserId   int
+	RefMarketId int
+	OrderType   string
+	Price       decimal.Decimal
+	Quantity    int
+	Status      string
+	RefOrderId  int
+	CreatedAt   time.Time
 }
 
 type UsersDTO struct {
-	User_id    string
-	Created_at time.Time
+	UserId    string
+	CreatedAt time.Time
 }
 
 type MarketDTO struct {
-	Market_id   string
-	Market_name string
-	Created_at  time.Time
+	MarketId   string
+	MarketName string
+	CreatedAt  time.Time
 }
 
 type Oreders_idDTO struct {
-	Order_id   string
-	Created_at time.Time
+	OrderId   string
+	CreatedAt time.Time
 }
 
 func CreatOrderDTO(order orderdomain.Order) *OrderDTO {
 	input := OrderDTO{
-		Order_type: order.Order_type,
-		Price:      order.Price,
-		Quantity:   int(order.Quantity),
+		Price:    order.Price,
+		Quantity: int(order.Quantity),
 	}
+	switch order.OrderType {
+	case orderdomain.ORDER_TYPE_NORMAL:
+		input.OrderType = "normal"
+	case orderdomain.ORDER_TYPE_EXPRESS:
+		input.OrderType = "express"
+	}
+
 	return &input
 }
 
-func CreateUserDTO(user_id string) *UsersDTO {
-	return &UsersDTO{User_id: user_id}
+func CreateUserDTO(userId string) *UsersDTO {
+	return &UsersDTO{UserId: userId}
 }
 
-func CreateMarketDTO(market_id, market_name string) *MarketDTO {
-	return &MarketDTO{Market_id: market_id, Market_name: market_name}
+func CreateMarketDTO(marketId, marketName string) *MarketDTO {
+	return &MarketDTO{MarketId: marketId, MarketName: marketName}
 }
 
-func CreateOrders_idDTO(order_id string) *Oreders_idDTO {
-	return &Oreders_idDTO{Order_id: order_id}
+func CreateOrders_idDTO(orderId string) *Oreders_idDTO {
+	return &Oreders_idDTO{OrderId: orderId}
 }

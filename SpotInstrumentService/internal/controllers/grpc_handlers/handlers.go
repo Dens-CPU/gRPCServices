@@ -10,7 +10,7 @@ import (
 )
 
 type Service interface {
-	ViewMarket(context.Context, *domainusers.User) ([]viewdto.Output, error)
+	ViewMarket(ctx context.Context, input domainusers.Input) (markets []viewdto.Output, pageToken string, err error)
 }
 
 type Handlers struct {

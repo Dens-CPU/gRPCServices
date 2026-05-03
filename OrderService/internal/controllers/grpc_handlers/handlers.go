@@ -9,9 +9,9 @@ import (
 )
 
 type Service interface {
-	CreateOrder(context.Context, orderdomain.Order) (string, string, error)
-	GetStatus(context.Context, orderdomain.Key) (string, error)
-	StreamGetState(ctx context.Context, key orderdomain.Key) chan string
+	CreateOrder(ctx context.Context, newOrder orderdomain.Order) (orderID string, orderStatus string, err error)
+	GetStatus(ctx context.Context, key orderdomain.Key) (orderStatus string, err error)
+	StreamGetState(ctx context.Context, key orderdomain.Key) (stateChan chan string, err error)
 }
 
 type Handlers struct {

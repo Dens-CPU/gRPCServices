@@ -9,17 +9,20 @@ import (
 )
 
 func (h *Handlers) ViewMarket(ctx context.Context, req *spot.ViewReq) (*spot.ViewResp, error) {
-	//Валидация
+	//Validation
 	err := req.Validate()
 	if err != nil {
-		return nil, fmt.Errorf("неправильный формат запроса:%w", err)
+		return nil, fmt.Errorf("invalid request format:%w", err)
 	}
 
-	//Преобразование запроса в доменную структуру User
-	user := domainusers.NewUser(domainusers.UserType(req.UserRoles))
+	input := domainusers.Input{
+		UserRole:  domainusers.UserRole(req.UserRoles),
+		UserId:    req.UserId,
+		PageSize:  int(req.PageSize),
+		PageToken: req.PageToken,
+	}
 
-	//Запрос сервиса на получение доступных рынков
-	output, err := h.Service.ViewMarket(ctx, user)
+	output, pageToken, err := h.Service.ViewMarket(ctx, input)
 	if err != nil {
 		return &spot.ViewResp{}, err
 	}
@@ -32,5 +35,6 @@ func (h *Handlers) ViewMarket(ctx context.Context, req *spot.ViewReq) (*spot.Vie
 		market := spot.Markets{MarketId: el.ID, MarketName: el.Name}
 		resp.EnableMarkets = append(resp.EnableMarkets, &market)
 	}
+	resp.PageToken = pageToken
 	return resp, nil
 }

@@ -2,6 +2,7 @@ package interseptors
 
 import (
 	"context"
+	"runtime/debug"
 
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -17,9 +18,10 @@ func UnaryPanicRecoveryInterceptor(logger *zap.Logger) grpc.UnaryServerIntercept
 	) (resp interface{}, err error) {
 		defer func() {
 			if r := recover(); r != nil {
-				logger.Info("panic recover",
-					zap.String("Method:", info.FullMethod), //Метод, при котором была вызвана паника
-					zap.Any("Panic:", r),                   //Сама паника
+				logger.Warn("panic recover",
+					zap.String("Method:", info.FullMethod),
+					zap.String("Стек:", string(debug.Stack())),
+					zap.Any("Panic:", r),
 				)
 			}
 		}()

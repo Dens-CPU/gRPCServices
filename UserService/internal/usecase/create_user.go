@@ -13,18 +13,23 @@ func (s *Service) CreateUser(ctx context.Context, user domainuser.User) (tokensd
 	//Add user to database and generate refresh token
 	ctx, span := s.tracer.Start(ctx, "Add user:")
 	defer span.End()
+
 	user_id, refreshToken, err := s.AddUser(ctx, user)
 	if err != nil {
 		s.logger.Error("error adding user to database:",
+			zap.String("spanID:", span.SpanContext().SpanID().String()),
 			zap.Error(err),
 		)
 		return tokensdto.PairToken{}, err
 	}
-	s.logger.Info("adding user succefully")
+	s.logger.Info("adding user succefully:",
+		zap.String("spanID:", span.SpanContext().SpanID().String()),
+	)
 
 	//Create accses token
 	ctx, span = s.tracer.Start(ctx, "Create accsess token:")
 	defer span.End()
+
 	accsesToken, ttl, err := s.CreateAccessToken(user_id, user.Email, user.Role)
 	if err != nil {
 		s.logger.Error("jwt generation error:",
@@ -34,6 +39,9 @@ func (s *Service) CreateUser(ctx context.Context, user domainuser.User) (tokensd
 	}
 
 	pairToken := tokensdto.NewPairToken(accsesToken, refreshToken, ttl)
-	s.logger.Info("token creation succeful")
+	s.logger.Info("token creation succeful:",
+		zap.String("spanID:", span.SpanContext().SpanID().String()),
+	)
+
 	return pairToken, nil
 }

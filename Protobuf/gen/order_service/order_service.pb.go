@@ -7,14 +7,14 @@
 package order_service
 
 import (
-	reflect "reflect"
-	sync "sync"
-	unsafe "unsafe"
-
+	common "github.com/DencCPU/gRPCServices/Protobuf/gen/common"
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
+	reflect "reflect"
+	sync "sync"
+	unsafe "unsafe"
 )
 
 const (
@@ -76,8 +76,8 @@ func (OrderType) EnumDescriptor() ([]byte, []int) {
 // Запрос для GetOrderStatus
 type GetOrderReq struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	OrderId       string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"` //ID заказа
-	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`    //ID пользователя
+	OrderId       string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -129,8 +129,8 @@ func (x *GetOrderReq) GetUserId() string {
 // Ответ для GetOrderStatus
 type GetOrderResp struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	OrderStatus   string                 `protobuf:"bytes,1,opt,name=order_status,json=orderStatus,proto3" json:"order_status,omitempty"` //Статус заказа
-	OrderId       string                 `protobuf:"bytes,2,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`             //ID заказа
+	OrderStatus   string                 `protobuf:"bytes,1,opt,name=order_status,json=orderStatus,proto3" json:"order_status,omitempty"`
+	OrderId       string                 `protobuf:"bytes,2,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -182,11 +182,12 @@ func (x *GetOrderResp) GetOrderId() string {
 // Запрос для CreateOrder
 type CreateOrderReq struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`                                           //Идентификатор пользователя
-	MarketId      string                 `protobuf:"bytes,2,opt,name=market_id,json=marketId,proto3" json:"market_id,omitempty"`                                     // Индентифиактор маркетплейса
-	OrderType     OrderType              `protobuf:"varint,3,opt,name=order_type,json=orderType,proto3,enum=order_service.v2.OrderType" json:"order_type,omitempty"` //Тип заказа(Стандарт,экспрес,по времени)
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	MarketId      string                 `protobuf:"bytes,2,opt,name=market_id,json=marketId,proto3" json:"market_id,omitempty"`
+	OrderType     OrderType              `protobuf:"varint,3,opt,name=order_type,json=orderType,proto3,enum=order_service.v2.OrderType" json:"order_type,omitempty"`
 	Price         string                 `protobuf:"bytes,4,opt,name=price,proto3" json:"price,omitempty"`
-	Quantity      int64                  `protobuf:"varint,5,opt,name=quantity,proto3" json:"quantity,omitempty"` //Количество
+	Quantity      int64                  `protobuf:"varint,5,opt,name=quantity,proto3" json:"quantity,omitempty"`
+	UserRole      common.UserRole        `protobuf:"varint,6,opt,name=user_role,json=userRole,proto3,enum=common.UserRole" json:"user_role,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -256,11 +257,18 @@ func (x *CreateOrderReq) GetQuantity() int64 {
 	return 0
 }
 
+func (x *CreateOrderReq) GetUserRole() common.UserRole {
+	if x != nil {
+		return x.UserRole
+	}
+	return common.UserRole(0)
+}
+
 // Ответ для CreateOrder
 type CreateOrderResp struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	OrderId       string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`             //Идентификатор заказа
-	OrderStatus   string                 `protobuf:"bytes,2,opt,name=order_status,json=orderStatus,proto3" json:"order_status,omitempty"` //Статус заказа
+	OrderId       string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	OrderStatus   string                 `protobuf:"bytes,2,opt,name=order_status,json=orderStatus,proto3" json:"order_status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -311,8 +319,8 @@ func (x *CreateOrderResp) GetOrderStatus() string {
 
 type StreamOrderUpdateReq struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	OrderId       string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"` //ID заказа
-	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`    //ID пользователя
+	OrderId       string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -417,21 +425,21 @@ var File_order_service_order_service_proto protoreflect.FileDescriptor
 
 const file_order_service_order_service_proto_rawDesc = "" +
 	"\n" +
-	"!order_service/order_service.proto\x12\x10order_service.v2\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17validate/validate.proto\"U\n" +
+	"!order_service/order_service.proto\x12\x10order_service.v2\x1a\x13common/common.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17validate/validate.proto\"U\n" +
 	"\vGetOrderReq\x12#\n" +
 	"\border_id\x18\x01 \x01(\tB\b\xfaB\x05r\x03\xb0\x01\x01R\aorderId\x12!\n" +
 	"\auser_id\x18\x02 \x01(\tB\b\xfaB\x05r\x03\xb0\x01\x01R\x06userId\"_\n" +
 	"\fGetOrderResp\x12*\n" +
 	"\forder_status\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\vorderStatus\x12#\n" +
-	"\border_id\x18\x02 \x01(\tB\b\xfaB\x05r\x03\xb0\x01\x01R\aorderId\"\xdb\x01\n" +
-	"\x0eCreateOrderReq\x12 \n" +
-	"\auser_id\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\x06userId\x12%\n" +
+	"\border_id\x18\x02 \x01(\tB\b\xfaB\x05r\x03\xb0\x01\x01R\aorderId\"\xa2\x02\n" +
+	"\x0eCreateOrderReq\x12!\n" +
+	"\auser_id\x18\x01 \x01(\tB\b\xfaB\x05r\x03\xb0\x01\x01R\x06userId\x12%\n" +
 	"\tmarket_id\x18\x02 \x01(\tB\b\xfaB\x05r\x03\xb0\x01\x01R\bmarketId\x12:\n" +
 	"\n" +
-	"order_type\x18\x03 \x01(\x0e2\x1b.order_service.v2.OrderTypeR\torderType\x12\x1f\n" +
-	"\x05price\x18\x04 \x01(\tB\t\xfaB\x06r\x04\x10\x01\x18\n" +
-	"R\x05price\x12#\n" +
-	"\bquantity\x18\x05 \x01(\x03B\a\xfaB\x04\"\x02(\x01R\bquantity\"b\n" +
+	"order_type\x18\x03 \x01(\x0e2\x1b.order_service.v2.OrderTypeR\torderType\x126\n" +
+	"\x05price\x18\x04 \x01(\tB \xfaB\x1dr\x1b\x10\x012\x17^\\d+(?:\\.\\d+)?$|^\\.\\d+$R\x05price\x12#\n" +
+	"\bquantity\x18\x05 \x01(\x03B\a\xfaB\x04\"\x02(\x01R\bquantity\x12-\n" +
+	"\tuser_role\x18\x06 \x01(\x0e2\x10.common.UserRoleR\buserRole\"b\n" +
 	"\x0fCreateOrderResp\x12#\n" +
 	"\border_id\x18\x01 \x01(\tB\b\xfaB\x05r\x03\xb0\x01\x01R\aorderId\x12*\n" +
 	"\forder_status\x18\x02 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\vorderStatus\"]\n" +
@@ -448,7 +456,7 @@ const file_order_service_order_service_proto_rawDesc = "" +
 	"\fOrderService\x12O\n" +
 	"\x0eGetOrderStatus\x12\x1d.order_service.v2.GetOrderReq\x1a\x1e.order_service.v2.GetOrderResp\x12R\n" +
 	"\vCreateOrder\x12 .order_service.v2.CreateOrderReq\x1a!.order_service.v2.CreateOrderResp\x12f\n" +
-	"\x11StreamOrderUpdate\x12&.order_service.v2.StreamOrderUpdateReq\x1a'.order_service.v2.StreamOrderUpdateResp0\x01BJZHgithub.com/DensCPU/gRPCServices/Protobuf/gen/order_service;order_serviceb\x06proto3"
+	"\x11StreamOrderUpdate\x12&.order_service.v2.StreamOrderUpdateReq\x1a'.order_service.v2.StreamOrderUpdateResp0\x01B=Z;github.com/DenсCPU/gRPCServices/Protobuf/gen/order_serviceb\x06proto3"
 
 var (
 	file_order_service_order_service_proto_rawDescOnce sync.Once
@@ -472,22 +480,24 @@ var file_order_service_order_service_proto_goTypes = []any{
 	(*CreateOrderResp)(nil),       // 4: order_service.v2.CreateOrderResp
 	(*StreamOrderUpdateReq)(nil),  // 5: order_service.v2.StreamOrderUpdateReq
 	(*StreamOrderUpdateResp)(nil), // 6: order_service.v2.StreamOrderUpdateResp
-	(*timestamppb.Timestamp)(nil), // 7: google.protobuf.Timestamp
+	(common.UserRole)(0),          // 7: common.UserRole
+	(*timestamppb.Timestamp)(nil), // 8: google.protobuf.Timestamp
 }
 var file_order_service_order_service_proto_depIdxs = []int32{
 	0, // 0: order_service.v2.CreateOrderReq.order_type:type_name -> order_service.v2.OrderType
-	7, // 1: order_service.v2.StreamOrderUpdateResp.update_status_time:type_name -> google.protobuf.Timestamp
-	1, // 2: order_service.v2.OrderService.GetOrderStatus:input_type -> order_service.v2.GetOrderReq
-	3, // 3: order_service.v2.OrderService.CreateOrder:input_type -> order_service.v2.CreateOrderReq
-	5, // 4: order_service.v2.OrderService.StreamOrderUpdate:input_type -> order_service.v2.StreamOrderUpdateReq
-	2, // 5: order_service.v2.OrderService.GetOrderStatus:output_type -> order_service.v2.GetOrderResp
-	4, // 6: order_service.v2.OrderService.CreateOrder:output_type -> order_service.v2.CreateOrderResp
-	6, // 7: order_service.v2.OrderService.StreamOrderUpdate:output_type -> order_service.v2.StreamOrderUpdateResp
-	5, // [5:8] is the sub-list for method output_type
-	2, // [2:5] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	7, // 1: order_service.v2.CreateOrderReq.user_role:type_name -> common.UserRole
+	8, // 2: order_service.v2.StreamOrderUpdateResp.update_status_time:type_name -> google.protobuf.Timestamp
+	1, // 3: order_service.v2.OrderService.GetOrderStatus:input_type -> order_service.v2.GetOrderReq
+	3, // 4: order_service.v2.OrderService.CreateOrder:input_type -> order_service.v2.CreateOrderReq
+	5, // 5: order_service.v2.OrderService.StreamOrderUpdate:input_type -> order_service.v2.StreamOrderUpdateReq
+	2, // 6: order_service.v2.OrderService.GetOrderStatus:output_type -> order_service.v2.GetOrderResp
+	4, // 7: order_service.v2.OrderService.CreateOrder:output_type -> order_service.v2.CreateOrderResp
+	6, // 8: order_service.v2.OrderService.StreamOrderUpdate:output_type -> order_service.v2.StreamOrderUpdateResp
+	6, // [6:9] is the sub-list for method output_type
+	3, // [3:6] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_order_service_order_service_proto_init() }

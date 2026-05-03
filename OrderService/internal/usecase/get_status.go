@@ -11,6 +11,7 @@ func (o *OrderService) GetStatus(ctx context.Context, key orderdomain.Key) (stri
 
 	ctx, span := o.tracer.Start(ctx, "Get status")
 	defer span.End()
+
 	status, err := o.GetOrderState(ctx, key)
 	if err != nil {
 		o.logger.Error("error receiving order status:",
@@ -18,5 +19,10 @@ func (o *OrderService) GetStatus(ctx context.Context, key orderdomain.Key) (stri
 		)
 		return "", err
 	}
+
+	o.logger.Info("Order status received:",
+		zap.String("UserID:", key.UserId),
+		zap.String("OrderID", key.OrderId),
+	)
 	return status, nil
 }

@@ -6,18 +6,23 @@ import (
 	"fmt"
 
 	orderdomain "github.com/DencCPU/gRPCServices/OrderService/internal/domain/order"
+	"github.com/DencCPU/gRPCServices/Protobuf/gen/common"
 	spot "github.com/DencCPU/gRPCServices/Protobuf/gen/spot_service"
 	"github.com/sony/gobreaker"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-func (s *Client) GetEnableMarkets(ctx context.Context) ([]orderdomain.Market, error) {
-	//Создание оболочки брейкера над зопросом
+func (s *Client) GetEnableMarkets(ctx context.Context, userID string, userRole orderdomain.UserRole) ([]orderdomain.Market, error) {
+	//Creating a breaker shell over a query
 	result, err := s.breaker.Execute(func() (interface{}, error) {
-
-		//Запрос к сервису
-		resp, err := s.ViewMarket(ctx, &spot.ViewReq{})
+		req := spot.ViewReq{
+			UserId:    userID,
+			UserRoles: common.UserRole(userRole),
+			PageSize:  0,
+		}
+		//Request to service
+		resp, err := s.ViewMarket(ctx, &req)
 		if err != nil {
 			return nil, err
 		}
@@ -25,26 +30,26 @@ func (s *Client) GetEnableMarkets(ctx context.Context) ([]orderdomain.Market, er
 	},
 	)
 
-	//Проверка состояния брейкера (закрыт, открыт)
+	//Checking the status of the breaker (closed, open)
 	if err != nil {
 		if errors.Is(err, gobreaker.ErrOpenState) {
-			return nil, status.Errorf(codes.Unavailable, "сервис временно недоступен")
+			return nil, status.Errorf(codes.Unavailable, "service is temporarily unavailable")
 		}
 		return nil, err
 	}
 
-	//Приведение результата безопасного запроса к определенному типу
+	//Casting the result of a safe query to a specific type
 	resp, ok := result.(*spot.ViewResp)
 	if !ok {
-		return nil, fmt.Errorf("Несоответсвующий тип result:%T", result)
+		return nil, fmt.Errorf("Inappropriate result type:%T", result)
 	}
 
-	//Проверка ответа от сервера
+	//Checking the response from the server
 	if len(resp.EnableMarkets) == 0 {
 		return []orderdomain.Market{}, nil
 	}
 
-	//Формирование ответа
+	//Create the response
 	var output = make([]orderdomain.Market, 0, len(resp.EnableMarkets))
 	for _, em := range resp.EnableMarkets {
 		market := orderdomain.Market{ID: em.MarketId, Name: em.MarketName}

@@ -10,12 +10,11 @@ import (
 func (api *GinAPI) GetOrderStatus(c *gin.Context) {
 	var orderInfo orderdto.GetInput
 
-	err := c.ShouldBindJSON(&orderInfo)
-	if err != nil {
+	orderInfo.OrderId = c.Query("id")
+	if orderInfo.OrderId == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
+			"error": "unfinde orderID in query row",
 		})
-		c.Abort()
 		return
 	}
 
@@ -33,7 +32,7 @@ func (api *GinAPI) GetOrderStatus(c *gin.Context) {
 		})
 		return
 	}
-	orderInfo.User_id = user_id
+	orderInfo.UserId = user_id
 	output, err := api.service.GetOrderStatus(c.Request.Context(), orderInfo)
 	if err != nil {
 		c.JSON(http.StatusBadGateway, gin.H{
@@ -42,7 +41,7 @@ func (api *GinAPI) GetOrderStatus(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{
-		"order_id":     output.Order_id,
-		"order_status": output.Order_status,
+		"order_id":     output.OrderId,
+		"order_status": output.OrderStatus,
 	})
 }

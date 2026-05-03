@@ -10,13 +10,12 @@ import (
 )
 
 type Storage interface {
-	AddOrderStorage(context.Context, orderdomain.Order, []orderdomain.Market) (string, string, error) //Добавление нового заказа в хранилище
-	GetOrderState(context.Context, orderdomain.Key) (string, error)                                   //Получение статуса заказа
-	ControlOrder(string, string, string) chan string
+	AddOrderStorage(ctx context.Context, newOrder orderdomain.Order, markets []orderdomain.Market) (orderID string, orderStatus string, err error) //Добавление нового заказа в хранилище
+	GetOrderState(ctx context.Context, key orderdomain.Key) (status string, err error)                                                             //Получение статуса заказа
 }
 
 type MarketsService interface {
-	GetEnableMarkets(context.Context) ([]orderdomain.Market, error) //Получение списка доступных рынков
+	GetEnableMarkets(ctx context.Context, userID string, userRole orderdomain.UserRole) ([]orderdomain.Market, error) //Получение списка доступных рынков
 }
 
 type Notify interface {
@@ -24,7 +23,7 @@ type Notify interface {
 	GetStatus(orderdomain.Key) string
 	AddNewSub(orderdomain.Key) chan string
 	GetNumbersSubsChan(orderdomain.Key) int
-	UpdateStatusSubs(orderdomain.Key)
+	UpdateStatusSubs(context.Context, orderdomain.Key)
 }
 
 type OrderService struct {

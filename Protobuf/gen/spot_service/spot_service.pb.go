@@ -7,6 +7,7 @@
 package spot_service
 
 import (
+	common "github.com/DencCPU/gRPCServices/Protobuf/gen/common"
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -22,59 +23,13 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type UserRole int32
-
-const (
-	UserRole_USER_ROLE_UNSPECIFIED  UserRole = 0
-	UserRole_USER_ROLE_BASIC_USER   UserRole = 1
-	UserRole_USER_ROLE_PREMIUM_USER UserRole = 2
-)
-
-// Enum value maps for UserRole.
-var (
-	UserRole_name = map[int32]string{
-		0: "USER_ROLE_UNSPECIFIED",
-		1: "USER_ROLE_BASIC_USER",
-		2: "USER_ROLE_PREMIUM_USER",
-	}
-	UserRole_value = map[string]int32{
-		"USER_ROLE_UNSPECIFIED":  0,
-		"USER_ROLE_BASIC_USER":   1,
-		"USER_ROLE_PREMIUM_USER": 2,
-	}
-)
-
-func (x UserRole) Enum() *UserRole {
-	p := new(UserRole)
-	*p = x
-	return p
-}
-
-func (x UserRole) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (UserRole) Descriptor() protoreflect.EnumDescriptor {
-	return file_spot_service_spot_service_proto_enumTypes[0].Descriptor()
-}
-
-func (UserRole) Type() protoreflect.EnumType {
-	return &file_spot_service_spot_service_proto_enumTypes[0]
-}
-
-func (x UserRole) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use UserRole.Descriptor instead.
-func (UserRole) EnumDescriptor() ([]byte, []int) {
-	return file_spot_service_spot_service_proto_rawDescGZIP(), []int{0}
-}
-
 // Запрос для ViewMarket
 type ViewReq struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserRoles     UserRole               `protobuf:"varint,1,opt,name=user_roles,json=userRoles,proto3,enum=spot_service.v2.UserRole" json:"user_roles,omitempty"` //Поле для юзера
+	UserRoles     common.UserRole        `protobuf:"varint,1,opt,name=user_roles,json=userRoles,proto3,enum=common.UserRole" json:"user_roles,omitempty"`
+	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	PageSize      int32                  `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	PageToken     string                 `protobuf:"bytes,4,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -109,17 +64,39 @@ func (*ViewReq) Descriptor() ([]byte, []int) {
 	return file_spot_service_spot_service_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *ViewReq) GetUserRoles() UserRole {
+func (x *ViewReq) GetUserRoles() common.UserRole {
 	if x != nil {
 		return x.UserRoles
 	}
-	return UserRole_USER_ROLE_UNSPECIFIED
+	return common.UserRole(0)
+}
+
+func (x *ViewReq) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *ViewReq) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ViewReq) GetPageToken() string {
+	if x != nil {
+		return x.PageToken
+	}
+	return ""
 }
 
 // Ответ для ViewMarket
 type ViewResp struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	EnableMarkets []*Markets             `protobuf:"bytes,1,rep,name=enable_markets,json=enableMarkets,proto3" json:"enable_markets,omitempty"`
+	PageToken     string                 `protobuf:"bytes,2,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -159,6 +136,13 @@ func (x *ViewResp) GetEnableMarkets() []*Markets {
 		return x.EnableMarkets
 	}
 	return nil
+}
+
+func (x *ViewResp) GetPageToken() string {
+	if x != nil {
+		return x.PageToken
+	}
+	return ""
 }
 
 type Markets struct {
@@ -217,23 +201,25 @@ var File_spot_service_spot_service_proto protoreflect.FileDescriptor
 
 const file_spot_service_spot_service_proto_rawDesc = "" +
 	"\n" +
-	"\x1fspot_service/spot_service.proto\x12\x0fspot_service.v2\x1a\x17validate/validate.proto\"C\n" +
-	"\aViewReq\x128\n" +
+	"\x1fspot_service/spot_service.proto\x12\x0fspot_service.v2\x1a\x13common/common.proto\x1a\x17validate/validate.proto\"\xa4\x01\n" +
+	"\aViewReq\x12/\n" +
 	"\n" +
-	"user_roles\x18\x01 \x01(\x0e2\x19.spot_service.v2.UserRoleR\tuserRoles\"K\n" +
+	"user_roles\x18\x01 \x01(\x0e2\x10.common.UserRoleR\tuserRoles\x12!\n" +
+	"\auser_id\x18\x02 \x01(\tB\b\xfaB\x05r\x03\xb0\x01\x01R\x06userId\x12&\n" +
+	"\tpage_size\x18\x03 \x01(\x05B\t\xfaB\x06\x1a\x04\x182(\x00R\bpageSize\x12\x1d\n" +
+	"\n" +
+	"page_token\x18\x04 \x01(\tR\tpageToken\"j\n" +
 	"\bViewResp\x12?\n" +
-	"\x0eenable_markets\x18\x01 \x03(\v2\x18.spot_service.v2.MarketsR\renableMarkets\"Z\n" +
-	"\aMarkets\x12%\n" +
-	"\tmarket_id\x18\x01 \x01(\tB\b\xfaB\x05r\x03\xb0\x01\x01R\bmarketId\x12(\n" +
-	"\vmarket_name\x18\x02 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\n" +
-	"marketName*[\n" +
-	"\bUserRole\x12\x19\n" +
-	"\x15USER_ROLE_UNSPECIFIED\x10\x00\x12\x18\n" +
-	"\x14USER_ROLE_BASIC_USER\x10\x01\x12\x1a\n" +
-	"\x16USER_ROLE_PREMIUM_USER\x10\x022Z\n" +
+	"\x0eenable_markets\x18\x01 \x03(\v2\x18.spot_service.v2.MarketsR\renableMarkets\x12\x1d\n" +
+	"\n" +
+	"page_token\x18\x02 \x01(\tR\tpageToken\"G\n" +
+	"\aMarkets\x12\x1b\n" +
+	"\tmarket_id\x18\x01 \x01(\tR\bmarketId\x12\x1f\n" +
+	"\vmarket_name\x18\x02 \x01(\tR\n" +
+	"marketName2Z\n" +
 	"\x15SpotInstrumentService\x12A\n" +
 	"\n" +
-	"ViewMarket\x12\x18.spot_service.v2.ViewReq\x1a\x19.spot_service.v2.ViewRespBHZFgithub.com/DensCPU/gRPCServices/Protobuf/gen/spot_service;spot_serviceb\x06proto3"
+	"ViewMarket\x12\x18.spot_service.v2.ViewReq\x1a\x19.spot_service.v2.ViewRespB<Z:github.com/DenсCPU/gRPCServices/Protobuf/gen/spot_serviceb\x06proto3"
 
 var (
 	file_spot_service_spot_service_proto_rawDescOnce sync.Once
@@ -247,19 +233,18 @@ func file_spot_service_spot_service_proto_rawDescGZIP() []byte {
 	return file_spot_service_spot_service_proto_rawDescData
 }
 
-var file_spot_service_spot_service_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_spot_service_spot_service_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_spot_service_spot_service_proto_goTypes = []any{
-	(UserRole)(0),    // 0: spot_service.v2.UserRole
-	(*ViewReq)(nil),  // 1: spot_service.v2.ViewReq
-	(*ViewResp)(nil), // 2: spot_service.v2.ViewResp
-	(*Markets)(nil),  // 3: spot_service.v2.Markets
+	(*ViewReq)(nil),      // 0: spot_service.v2.ViewReq
+	(*ViewResp)(nil),     // 1: spot_service.v2.ViewResp
+	(*Markets)(nil),      // 2: spot_service.v2.Markets
+	(common.UserRole)(0), // 3: common.UserRole
 }
 var file_spot_service_spot_service_proto_depIdxs = []int32{
-	0, // 0: spot_service.v2.ViewReq.user_roles:type_name -> spot_service.v2.UserRole
-	3, // 1: spot_service.v2.ViewResp.enable_markets:type_name -> spot_service.v2.Markets
-	1, // 2: spot_service.v2.SpotInstrumentService.ViewMarket:input_type -> spot_service.v2.ViewReq
-	2, // 3: spot_service.v2.SpotInstrumentService.ViewMarket:output_type -> spot_service.v2.ViewResp
+	3, // 0: spot_service.v2.ViewReq.user_roles:type_name -> common.UserRole
+	2, // 1: spot_service.v2.ViewResp.enable_markets:type_name -> spot_service.v2.Markets
+	0, // 2: spot_service.v2.SpotInstrumentService.ViewMarket:input_type -> spot_service.v2.ViewReq
+	1, // 3: spot_service.v2.SpotInstrumentService.ViewMarket:output_type -> spot_service.v2.ViewResp
 	3, // [3:4] is the sub-list for method output_type
 	2, // [2:3] is the sub-list for method input_type
 	2, // [2:2] is the sub-list for extension type_name
@@ -277,14 +262,13 @@ func file_spot_service_spot_service_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_spot_service_spot_service_proto_rawDesc), len(file_spot_service_spot_service_proto_rawDesc)),
-			NumEnums:      1,
+			NumEnums:      0,
 			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_spot_service_spot_service_proto_goTypes,
 		DependencyIndexes: file_spot_service_spot_service_proto_depIdxs,
-		EnumInfos:         file_spot_service_spot_service_proto_enumTypes,
 		MessageInfos:      file_spot_service_spot_service_proto_msgTypes,
 	}.Build()
 	File_spot_service_spot_service_proto = out.File

@@ -2,7 +2,6 @@ package orderhandlers
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	orderdomain "github.com/DencCPU/gRPCServices/OrderService/internal/domain/order"
@@ -12,45 +11,37 @@ import (
 )
 
 func (h *Handlers) CreateOrder(ctx context.Context, req *order.CreateOrderReq) (*order.CreateOrderResp, error) {
-	//Валидация запроса
+	//Validation
 	if err := req.Validate(); err != nil {
-		return nil, fmt.Errorf("неправильный формат запроса:%w", err)
+		return nil, fmt.Errorf("invalid request format:%w", err)
 	}
 
-	//Парсинг цены
+	//Parse string to decimal
 	price, err := decimal.NewFromString(req.Price)
 	if err != nil {
-		return nil, fmt.Errorf("неправильный формат цены:%w", err)
+		return nil, fmt.Errorf("invalid price format:%w", err)
 	}
-	var orderType string
 
-	switch req.OrderType {
-	case order.OrderType_ORDER_TYPE_NORMAL:
-		orderType = "normal"
-	case order.OrderType_ORDER_TYPE_EXPRESS:
-		orderType = "express"
-	default:
-		return &order.CreateOrderResp{}, errors.New("неверный тип заказа")
-	}
-	//Формирование нового заказа
 	newOrder := orderdomain.Order{
-		User_id:    req.UserId,
-		Market_id:  req.MarketId,
-		Order_type: orderType,
-		Price:      price,
-		Quantity:   req.Quantity,
+		UserId:    req.UserId,
+		MarketId:  req.MarketId,
+		OrderType: orderdomain.OrderType(req.OrderType),
+		Price:     price,
+		Quantity:  req.Quantity,
+		UserRole:  orderdomain.UserRole(req.UserRole),
 	}
 
-	//Создание заказа
+	if newOrder.OrderType == orderdomain.ORDER_TYPE_UNSPECIFIED {
+		return nil, fmt.Errorf("unknow order type")
+	}
 	orderID, status, err := h.Service.CreateOrder(ctx, newOrder)
 	if err != nil {
 		return &order.CreateOrderResp{}, err
 	}
 
-	//Формирование ответа
 	resp := order.CreateOrderResp{OrderId: orderID, OrderStatus: status}
 	if err = resp.Validate(); err != nil {
-		return nil, fmt.Errorf("неправильный формат ответа сервера:%w", err)
+		return nil, fmt.Errorf("invalid response format:%w", err)
 	}
 	return &resp, nil
 }

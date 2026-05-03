@@ -16,16 +16,16 @@ func XRequestID(
 ) (interface{}, error) {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if ok {
-		values := md.Get(requestIDKey)
+		values := md.Get(string(requestID))
 		var id string
 		if len(values) != 0 {
 			id = values[0]
 		} else {
 			id = uuid.New().String()
 		}
-		ctx = context.WithValue(ctx, requestIDKey, id)
+		ctx = context.WithValue(ctx, string(requestID), id)
 	} else {
-		ctx = context.WithValue(ctx, requestIDKey, uuid.New().String())
+		ctx = context.WithValue(ctx, string(requestID), uuid.New().String())
 	}
 	return handler(ctx, req)
 }

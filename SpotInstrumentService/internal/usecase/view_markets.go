@@ -11,22 +11,25 @@ import (
 )
 
 // Получение доступных рынков
-func (s *SpotService) ViewMarket(ctx context.Context, user *domainusers.User) ([]viewdto.Output, error) {
+func (s *SpotService) ViewMarket(ctx context.Context, input domainusers.Input) ([]viewdto.Output, string, error) {
 
 	var enableMarkets []*domainmarket.Market
+
 	ctx, span := s.tracer.Start(ctx, "view markets")
 	defer span.End()
 
-	enableMarkets = s.GetEnableMarkets()
+	enableMarkets, pageToken := s.GetEnableMarkets(input)
 
 	if len(enableMarkets) == 0 {
 		s.logger.Error("no markets available")
-		return nil, spoterrors.Avalible_markets
+		return nil, "", spoterrors.Avalible_markets
 	}
+
 	s.logger.Info("List of available markets received",
-		zap.String("get enable markets span:", span.SpanContext().TraceID().String()),
+		zap.String("spanID:", span.SpanContext().SpanID().String()),
 	)
-	return Mapper(enableMarkets), nil
+
+	return Mapper(enableMarkets), pageToken, nil
 }
 
 // Маппер для ViewMarket

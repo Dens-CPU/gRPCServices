@@ -3,30 +3,49 @@ package memory
 import (
 	"errors"
 	"fmt"
+	"math/rand"
 	"os"
 	"regexp"
+	"time"
 
 	domainmarket "github.com/DencCPU/gRPCServices/SpotInstrumentService/internal/domain/market"
+	domainusers "github.com/DencCPU/gRPCServices/SpotInstrumentService/internal/domain/users"
 	"github.com/google/uuid"
 )
 
 // Добавление маркетов
 func (s *Storage) AddMarkets(path string) error {
+
+	//Read file with markets name
 	file, err := os.ReadFile(path)
 	if err != nil {
 		return fmt.Errorf("error reading file:%w", err)
 	}
+
+	//Create regular expression
 	re := regexp.MustCompile(`([a-zA-Z0-9]+)+\s?([a-zA-Z0-9]+)?`)
 	markets := re.FindAllString(string(file), -1)
 
-	//Заполнение storage
 	if len(markets) == 0 {
 		return errors.New("market list is empty")
 	}
+	s.keys = make([]string, 0, len(markets))
 
-	for _, m := range markets {
+	rand.Seed(time.Now().Unix())
+	for _, name := range markets {
 		id := uuid.New().String()
-		s.date[m] = &domainmarket.Market{ID: id, Name: m, Enable: true, Delete_at: nil}
+
+		var userAccess domainusers.UserRole
+		switch rand.Intn(2) {
+		case 0:
+			userAccess = domainusers.USER_ROLE_BASIC_USER
+		default:
+			userAccess = domainusers.USER_ROLE_PREMIUM_USER
+		}
+
+		s.date[id] = &domainmarket.Market{ID: id, Name: name, Enable: true, DeleteAt: nil, UserAccess: userAccess}
+		fmt.Println("Added userRole:", s.date[id])
+		s.keys = append(s.keys, id)
 	}
 
 	return nil

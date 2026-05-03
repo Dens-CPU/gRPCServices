@@ -23,8 +23,8 @@ func NewJWT(cfg userconfig.JWT) *JWT {
 }
 
 // Create a new JWT
-func (j *JWT) CreateAccessToken(user_id, email, role string) (string, time.Time, error) {
-	accessClaim := tokensdto.NewAccessClaim(user_id, email, role)
+func (j *JWT) CreateAccessToken(userId, email, role string) (string, time.Time, error) {
+	accessClaim := tokensdto.NewAccessClaim(userId, email, role)
 	accessClaim.RegisteredClaims = jwt.RegisteredClaims{
 		ExpiresAt: jwt.NewNumericDate(time.Now().Add(j.AccessTokenTTL)),
 		IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -53,7 +53,7 @@ func (j *JWT) UpdateAccessToken(oldAccessToken string) (string, time.Time, error
 		}
 	}
 
-	newAccessClaim := tokensdto.NewAccessClaim(claims.User_id, claims.Email, claims.Role)
+	newAccessClaim := tokensdto.NewAccessClaim(claims.UserId, claims.Email, claims.Role)
 	newAccessClaim.RegisteredClaims = jwt.RegisteredClaims{
 		ExpiresAt: jwt.NewNumericDate(time.Now().Add(j.AccessTokenTTL)),
 		IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -79,7 +79,7 @@ func (j *JWT) Validation(accessToken string) (user.Output, error) {
 
 	if err != nil {
 		if errors.Is(err, jwt.ErrTokenExpired) {
-			return user.Output{}, sharederrors.EXPIRED_TOKEN
+			return user.Output{}, sharederrors.ExpiredToken
 		}
 		return user.Output{}, err
 	}
@@ -89,8 +89,8 @@ func (j *JWT) Validation(accessToken string) (user.Output, error) {
 	}
 
 	user := user.Output{
-		User_id: claims.User_id,
-		Role:    claims.Role,
+		UserId: claims.UserId,
+		Role:   claims.Role,
 	}
 
 	return user, nil

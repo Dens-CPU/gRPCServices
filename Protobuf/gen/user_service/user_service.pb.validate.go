@@ -17,6 +17,8 @@ import (
 	"unicode/utf8"
 
 	"google.golang.org/protobuf/types/known/anypb"
+
+	common "github.com/DencCPU/gRPCServices/Protobuf/gen/common"
 )
 
 // ensure the imports are used
@@ -33,6 +35,8 @@ var (
 	_ = (*mail.Address)(nil)
 	_ = anypb.Any{}
 	_ = sort.Sort
+
+	_ = common.UserRole(0)
 )
 
 // define the regex for a UUID once up-front
@@ -246,69 +250,41 @@ func (m *CreateUserResp) validate(all bool) error {
 
 	var errors []error
 
-	if utf8.RuneCountInString(m.GetAccessToken()) < 1 {
-		err := CreateUserRespValidationError{
-			field:  "AccessToken",
-			reason: "value length must be at least 1 runes",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for AccessToken
 
-	if err := m._validateUuid(m.GetRefreshToken()); err != nil {
-		err = CreateUserRespValidationError{
-			field:  "RefreshToken",
-			reason: "value must be a valid UUID",
-			cause:  err,
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for RefreshToken
 
-	if t := m.GetExpireAt(); t != nil {
-		ts, err := t.AsTime(), t.CheckValid()
-		if err != nil {
-			err = CreateUserRespValidationError{
+	if all {
+		switch v := interface{}(m.GetExpireAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, CreateUserRespValidationError{
+					field:  "ExpireAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, CreateUserRespValidationError{
+					field:  "ExpireAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetExpireAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CreateUserRespValidationError{
 				field:  "ExpireAt",
-				reason: "value is not a valid timestamp",
+				reason: "embedded message failed validation",
 				cause:  err,
 			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
-		} else {
-
-			now := time.Now()
-
-			if ts.Sub(now) >= 0 {
-				err := CreateUserRespValidationError{
-					field:  "ExpireAt",
-					reason: "value must be less than now",
-				}
-				if !all {
-					return err
-				}
-				errors = append(errors, err)
-			}
-
 		}
 	}
 
 	if len(errors) > 0 {
 		return CreateUserRespMultiError(errors)
-	}
-
-	return nil
-}
-
-func (m *CreateUserResp) _validateUuid(uuid string) error {
-	if matched := _user_service_uuidPattern.MatchString(uuid); !matched {
-		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -538,69 +514,41 @@ func (m *UpdateTokensResp) validate(all bool) error {
 
 	var errors []error
 
-	if utf8.RuneCountInString(m.GetAccessToken()) < 1 {
-		err := UpdateTokensRespValidationError{
-			field:  "AccessToken",
-			reason: "value length must be at least 1 runes",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for AccessToken
 
-	if err := m._validateUuid(m.GetRefreshToken()); err != nil {
-		err = UpdateTokensRespValidationError{
-			field:  "RefreshToken",
-			reason: "value must be a valid UUID",
-			cause:  err,
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for RefreshToken
 
-	if t := m.GetExpireAt(); t != nil {
-		ts, err := t.AsTime(), t.CheckValid()
-		if err != nil {
-			err = UpdateTokensRespValidationError{
+	if all {
+		switch v := interface{}(m.GetExpireAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UpdateTokensRespValidationError{
+					field:  "ExpireAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UpdateTokensRespValidationError{
+					field:  "ExpireAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetExpireAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UpdateTokensRespValidationError{
 				field:  "ExpireAt",
-				reason: "value is not a valid timestamp",
+				reason: "embedded message failed validation",
 				cause:  err,
 			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
-		} else {
-
-			now := time.Now()
-
-			if ts.Sub(now) >= 0 {
-				err := UpdateTokensRespValidationError{
-					field:  "ExpireAt",
-					reason: "value must be less than now",
-				}
-				if !all {
-					return err
-				}
-				errors = append(errors, err)
-			}
-
 		}
 	}
 
 	if len(errors) > 0 {
 		return UpdateTokensRespMultiError(errors)
-	}
-
-	return nil
-}
-
-func (m *UpdateTokensResp) _validateUuid(uuid string) error {
-	if matched := _user_service_uuidPattern.MatchString(uuid); !matched {
-		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -810,30 +758,12 @@ func (m *ValidationResp) validate(all bool) error {
 
 	var errors []error
 
-	if err := m._validateUuid(m.GetUserId()); err != nil {
-		err = ValidationRespValidationError{
-			field:  "UserId",
-			reason: "value must be a valid UUID",
-			cause:  err,
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for UserId
 
 	// no validation rules for Role
 
 	if len(errors) > 0 {
 		return ValidationRespMultiError(errors)
-	}
-
-	return nil
-}
-
-func (m *ValidationResp) _validateUuid(uuid string) error {
-	if matched := _user_service_uuidPattern.MatchString(uuid); !matched {
-		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -909,3 +839,306 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ValidationRespValidationError{}
+
+// Validate checks the field values on AuthReq with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *AuthReq) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AuthReq with the rules defined in the
+// proto definition for this message. If any rules are violated, the result is
+// a list of violation errors wrapped in AuthReqMultiError, or nil if none found.
+func (m *AuthReq) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AuthReq) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if err := m._validateEmail(m.GetEmail()); err != nil {
+		err = AuthReqValidationError{
+			field:  "Email",
+			reason: "value must be a valid email address",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if utf8.RuneCountInString(m.GetPassword()) < 8 {
+		err := AuthReqValidationError{
+			field:  "Password",
+			reason: "value length must be at least 8 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return AuthReqMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *AuthReq) _validateHostname(host string) error {
+	s := strings.ToLower(strings.TrimSuffix(host, "."))
+
+	if len(host) > 253 {
+		return errors.New("hostname cannot exceed 253 characters")
+	}
+
+	for _, part := range strings.Split(s, ".") {
+		if l := len(part); l == 0 || l > 63 {
+			return errors.New("hostname part must be non-empty and cannot exceed 63 characters")
+		}
+
+		if part[0] == '-' {
+			return errors.New("hostname parts cannot begin with hyphens")
+		}
+
+		if part[len(part)-1] == '-' {
+			return errors.New("hostname parts cannot end with hyphens")
+		}
+
+		for _, r := range part {
+			if (r < 'a' || r > 'z') && (r < '0' || r > '9') && r != '-' {
+				return fmt.Errorf("hostname parts can only contain alphanumeric characters or hyphens, got %q", string(r))
+			}
+		}
+	}
+
+	return nil
+}
+
+func (m *AuthReq) _validateEmail(addr string) error {
+	a, err := mail.ParseAddress(addr)
+	if err != nil {
+		return err
+	}
+	addr = a.Address
+
+	if len(addr) > 254 {
+		return errors.New("email addresses cannot exceed 254 characters")
+	}
+
+	parts := strings.SplitN(addr, "@", 2)
+
+	if len(parts[0]) > 64 {
+		return errors.New("email address local phrase cannot exceed 64 characters")
+	}
+
+	return m._validateHostname(parts[1])
+}
+
+// AuthReqMultiError is an error wrapping multiple validation errors returned
+// by AuthReq.ValidateAll() if the designated constraints aren't met.
+type AuthReqMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AuthReqMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AuthReqMultiError) AllErrors() []error { return m }
+
+// AuthReqValidationError is the validation error returned by AuthReq.Validate
+// if the designated constraints aren't met.
+type AuthReqValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AuthReqValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AuthReqValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AuthReqValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AuthReqValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AuthReqValidationError) ErrorName() string { return "AuthReqValidationError" }
+
+// Error satisfies the builtin error interface
+func (e AuthReqValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAuthReq.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AuthReqValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AuthReqValidationError{}
+
+// Validate checks the field values on AuthResp with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *AuthResp) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AuthResp with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in AuthRespMultiError, or nil
+// if none found.
+func (m *AuthResp) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AuthResp) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for AccessToken
+
+	// no validation rules for RefreshToken
+
+	if all {
+		switch v := interface{}(m.GetExpireAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, AuthRespValidationError{
+					field:  "ExpireAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, AuthRespValidationError{
+					field:  "ExpireAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetExpireAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return AuthRespValidationError{
+				field:  "ExpireAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return AuthRespMultiError(errors)
+	}
+
+	return nil
+}
+
+// AuthRespMultiError is an error wrapping multiple validation errors returned
+// by AuthResp.ValidateAll() if the designated constraints aren't met.
+type AuthRespMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AuthRespMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AuthRespMultiError) AllErrors() []error { return m }
+
+// AuthRespValidationError is the validation error returned by
+// AuthResp.Validate if the designated constraints aren't met.
+type AuthRespValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AuthRespValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AuthRespValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AuthRespValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AuthRespValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AuthRespValidationError) ErrorName() string { return "AuthRespValidationError" }
+
+// Error satisfies the builtin error interface
+func (e AuthRespValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAuthResp.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AuthRespValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AuthRespValidationError{}

@@ -17,6 +17,7 @@ func TestStorage_AddMarkets(t *testing.T) {
 	if err != nil {
 		t.Fatal("Ошибка записи в файл:", err)
 	}
+
 	tests := []struct {
 		name string // description of this test case
 		// Named input parameters for receiver constructor.
@@ -31,6 +32,7 @@ func TestStorage_AddMarkets(t *testing.T) {
 			wantErr: false,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s, err := memory.NewStorage(tt.logger)

@@ -22,6 +22,7 @@ const (
 	UserService_CreateUser_FullMethodName       = "/user_service.v1.UserService/CreateUser"
 	UserService_UpdateTokens_FullMethodName     = "/user_service.v1.UserService/UpdateTokens"
 	UserService_ValidationTokens_FullMethodName = "/user_service.v1.UserService/ValidationTokens"
+	UserService_Authentication_FullMethodName   = "/user_service.v1.UserService/Authentication"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -31,6 +32,7 @@ type UserServiceClient interface {
 	CreateUser(ctx context.Context, in *CreateUserReq, opts ...grpc.CallOption) (*CreateUserResp, error)
 	UpdateTokens(ctx context.Context, in *UpdateTokensReq, opts ...grpc.CallOption) (*UpdateTokensResp, error)
 	ValidationTokens(ctx context.Context, in *ValidationReq, opts ...grpc.CallOption) (*ValidationResp, error)
+	Authentication(ctx context.Context, in *AuthReq, opts ...grpc.CallOption) (*AuthResp, error)
 }
 
 type userServiceClient struct {
@@ -71,6 +73,16 @@ func (c *userServiceClient) ValidationTokens(ctx context.Context, in *Validation
 	return out, nil
 }
 
+func (c *userServiceClient) Authentication(ctx context.Context, in *AuthReq, opts ...grpc.CallOption) (*AuthResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AuthResp)
+	err := c.cc.Invoke(ctx, UserService_Authentication_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility.
@@ -78,6 +90,7 @@ type UserServiceServer interface {
 	CreateUser(context.Context, *CreateUserReq) (*CreateUserResp, error)
 	UpdateTokens(context.Context, *UpdateTokensReq) (*UpdateTokensResp, error)
 	ValidationTokens(context.Context, *ValidationReq) (*ValidationResp, error)
+	Authentication(context.Context, *AuthReq) (*AuthResp, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -96,6 +109,9 @@ func (UnimplementedUserServiceServer) UpdateTokens(context.Context, *UpdateToken
 }
 func (UnimplementedUserServiceServer) ValidationTokens(context.Context, *ValidationReq) (*ValidationResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ValidationTokens not implemented")
+}
+func (UnimplementedUserServiceServer) Authentication(context.Context, *AuthReq) (*AuthResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Authentication not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 func (UnimplementedUserServiceServer) testEmbeddedByValue()                     {}
@@ -172,6 +188,24 @@ func _UserService_ValidationTokens_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_Authentication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).Authentication(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_Authentication_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).Authentication(ctx, req.(*AuthReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -190,6 +224,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ValidationTokens",
 			Handler:    _UserService_ValidationTokens_Handler,
+		},
+		{
+			MethodName: "Authentication",
+			Handler:    _UserService_Authentication_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

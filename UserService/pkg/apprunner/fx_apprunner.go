@@ -92,6 +92,16 @@ func PostgresModul() fx.Option {
 				return storage, nil
 			},
 		),
+		fx.Invoke(
+			func(lc fx.Lifecycle, db *postgres.PostgresDB) {
+				lc.Append(fx.Hook{
+					OnStop: func(ctx context.Context) error {
+						db.Close()
+						return nil
+					},
+				})
+			},
+		),
 	)
 }
 
@@ -104,7 +114,7 @@ func TracingModule() fx.Option {
 					propagation.TraceContext{},
 					propagation.Baggage{},
 				))
-				trace, err := opentelemetry.NewTrace(context.Background(), "userService", config.Jaeger.Host, config.Jaeger.Port)
+				trace, err := opentelemetry.NewGrpcTracer(context.Background(), "userService", config.Jaeger.Host, config.Jaeger.Port)
 				if err != nil {
 					logger.Error("tracer initialization error:",
 						zap.Error(err))

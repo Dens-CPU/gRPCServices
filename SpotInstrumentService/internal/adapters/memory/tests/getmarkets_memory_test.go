@@ -1,6 +1,7 @@
 package memory_test
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/DencCPU/gRPCServices/Shared/logger"
 	"github.com/DencCPU/gRPCServices/SpotInstrumentService/internal/adapters/memory"
+	domainusers "github.com/DencCPU/gRPCServices/SpotInstrumentService/internal/domain/users"
 )
 
 func TestStorage_GetEnableMarkets(t *testing.T) {
@@ -19,22 +21,35 @@ func TestStorage_GetEnableMarkets(t *testing.T) {
 	filedate := "Binance, TradingView, Coinbase Exchange, Upbit"
 	err := os.WriteFile(path, []byte(filedate), 0644)
 	if err != nil {
-		t.Fatal("ошибка записи в файл:", err)
+		t.Fatal("write to file error:", err)
 	}
 
 	s, err := memory.NewStorage(logger)
 	if err != nil {
-		t.Fatal("ошибка инициализации хранилища:", err)
+		t.Fatal("initialization error:", err)
 	}
 
 	err = s.AddMarkets(path)
 	if err != nil {
-		t.Fatal("ошибка добафления рынков в хранилище", err)
+		t.Fatal("error add markets to storage", err)
+	}
+	input := domainusers.Input{
+		UserRole:  domainusers.USER_ROLE_BASIC_USER,
+		PageSize:  0,
+		PageToken: "",
+	}
+	fmt.Println("UserRole:", input.UserRole)
+
+	date, pagetoken := s.GetEnableMarkets(input)
+
+	if len(date) == 0 {
+		t.Fatal("Enable markets list is empty")
 	}
 
-	date := s.GetEnableMarkets()
-	if len(date) == 0 {
-		t.Fatal("Список доступных рынков пуст")
+	fmt.Println("quatity enable markets:", len(date))
+
+	if pagetoken == "" {
+		t.Fatal("pageToken is empty")
 	}
 
 	re := regexp.MustCompile(`([a-zA-Z0-9]+)+\s?([a-zA-Z0-9]+)?`)
@@ -46,7 +61,7 @@ func TestStorage_GetEnableMarkets(t *testing.T) {
 	}
 	for _, get := range date {
 		if _, exsist := checkMap[get.Name]; !exsist {
-			log.Fatal("ошибка.Нет значения в полученном списке:", err)
+			log.Fatal("error.there are no values ​​in the resulting list:", err)
 		}
 	}
 

@@ -3,18 +3,28 @@ package postgres
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	orderconfig "github.com/DencCPU/gRPCServices/OrderService/config"
+	orderdomain "github.com/DencCPU/gRPCServices/OrderService/internal/domain/order"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"go.uber.org/zap"
 )
+
+type Notify interface {
+	AddNewState(userId string, orderId string, statCh chan string)
+}
 
 type PostgresDB struct {
 	*pgxpool.Pool
-	logger *zap.Logger
+	Notify
+	controlOrderChan chan orderdomain.OrderInfo
+
+	ctx    context.Context
+	cancel context.CancelFunc
+	wg     sync.WaitGroup
 }
 
-func NewDB(ctx context.Context, logger *zap.Logger, cfg orderconfig.Postgres) (*PostgresDB, error) {
+func NewDB(ctx context.Context, cfg orderconfig.Postgres, notify Notify) (*PostgresDB, error) {
 
 	dsn := fmt.Sprintf(
 		"postgres://%s:%s@%s:%d/%s?sslmode=%s",
@@ -38,5 +48,7 @@ func NewDB(ctx context.Context, logger *zap.Logger, cfg orderconfig.Postgres) (*
 	}
 	defer conn.Release()
 
-	return &PostgresDB{db, logger}, nil
+	dbCtx, dbCancel := context.WithCancel(ctx)
+
+	return &PostgresDB{db, notify, make(chan orderdomain.OrderInfo, cfg.ControlChanSize), dbCtx, dbCancel, sync.WaitGroup{}}, nil
 }

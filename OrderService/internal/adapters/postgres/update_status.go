@@ -3,8 +3,8 @@ package postgres
 import "context"
 
 // Обновление статуса заказа
-func (p *PostgresDB) UpdateStatus(id int, status string) error {
-	_, err := p.Exec(context.Background(), `
+func (p *PostgresDB) UpdateStatus(ctx context.Context, id int, status string) error {
+	_, err := p.Exec(ctx, `
 	UPDATE orders SET status = $1
 	WHERE id = $2
 	`, status, id)

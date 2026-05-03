@@ -30,3 +30,10 @@ user_proto:
 		--validate_out="lang=go:Protobuf/gen" \
 		--validate_opt=paths=source_relative \
 		user_service/user_service.proto
+
+common_proto:
+	protoc \
+		-I=./Protobuf/proto \
+		--go_out=./Protobuf/gen \
+		--go_opt=paths=source_relative \
+		common/common.proto

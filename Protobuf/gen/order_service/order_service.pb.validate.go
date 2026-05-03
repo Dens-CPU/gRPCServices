@@ -17,6 +17,8 @@ import (
 	"unicode/utf8"
 
 	"google.golang.org/protobuf/types/known/anypb"
+
+	common "github.com/DencCPU/gRPCServices/Protobuf/gen/common"
 )
 
 // ensure the imports are used
@@ -33,6 +35,8 @@ var (
 	_ = (*mail.Address)(nil)
 	_ = anypb.Any{}
 	_ = sort.Sort
+
+	_ = common.UserRole(0)
 )
 
 // define the regex for a UUID once up-front
@@ -321,10 +325,11 @@ func (m *CreateOrderReq) validate(all bool) error {
 
 	var errors []error
 
-	if utf8.RuneCountInString(m.GetUserId()) < 1 {
-		err := CreateOrderReqValidationError{
+	if err := m._validateUuid(m.GetUserId()); err != nil {
+		err = CreateOrderReqValidationError{
 			field:  "UserId",
-			reason: "value length must be at least 1 runes",
+			reason: "value must be a valid UUID",
+			cause:  err,
 		}
 		if !all {
 			return err
@@ -346,10 +351,21 @@ func (m *CreateOrderReq) validate(all bool) error {
 
 	// no validation rules for OrderType
 
-	if l := utf8.RuneCountInString(m.GetPrice()); l < 1 || l > 10 {
+	if utf8.RuneCountInString(m.GetPrice()) < 1 {
 		err := CreateOrderReqValidationError{
 			field:  "Price",
-			reason: "value length must be between 1 and 10 runes, inclusive",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if !_CreateOrderReq_Price_Pattern.MatchString(m.GetPrice()) {
+		err := CreateOrderReqValidationError{
+			field:  "Price",
+			reason: "value does not match regex pattern \"^\\\\d+(?:\\\\.\\\\d+)?$|^\\\\.\\\\d+$\"",
 		}
 		if !all {
 			return err
@@ -367,6 +383,8 @@ func (m *CreateOrderReq) validate(all bool) error {
 		}
 		errors = append(errors, err)
 	}
+
+	// no validation rules for UserRole
 
 	if len(errors) > 0 {
 		return CreateOrderReqMultiError(errors)
@@ -453,6 +471,8 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = CreateOrderReqValidationError{}
+
+var _CreateOrderReq_Price_Pattern = regexp.MustCompile("^\\d+(?:\\.\\d+)?$|^\\.\\d+$")
 
 // Validate checks the field values on CreateOrderResp with the rules defined
 // in the proto definition for this message. If any rules are violated, the

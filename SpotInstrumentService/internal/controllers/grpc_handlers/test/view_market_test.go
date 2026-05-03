@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/DencCPU/gRPCServices/Protobuf/gen/common"
 	spot "github.com/DencCPU/gRPCServices/Protobuf/gen/spot_service"
 	"github.com/DencCPU/gRPCServices/Shared/logger"
 	"github.com/DencCPU/gRPCServices/Shared/opentelemetry"
@@ -25,8 +26,8 @@ func TestHandlers_ViewMarket(t *testing.T) {
 		t.Fatal("Ошибка записи в файл:", err)
 	}
 	logger, _ := logger.NewLogger()
-	trace, _ := opentelemetry.NewTrace(context.Background(), "", "localhost", "4317")
-	tracer := trace.Tracer("SpotService")
+	tracerProvider, _ := opentelemetry.NewGrpcTracer(context.Background(), "", "localhost", "4317")
+	tracer := tracerProvider.Tracer("SpotService")
 	s, err := memory.NewStorage(logger)
 	if err != nil {
 		log.Fatal("ошибка создания хранилища:", err)
@@ -64,7 +65,7 @@ func TestHandlers_ViewMarket(t *testing.T) {
 		{
 			name:        "get enable markets",
 			spotService: usecase.NewSpotInstrument(s, logger, tracer),
-			req:         &spot.ViewReq{UserRoles: spot.UserRole_USER_ROLE_BASIC_USER},
+			req:         &spot.ViewReq{UserRoles: common.UserRole_USER_ROLE_BASIC_USER},
 			want:        resp,
 			wantErr:     false,
 		},

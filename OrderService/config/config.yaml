@@ -10,6 +10,7 @@ postgres:
   password: 
   name: 
   sslmode: "disable"
+  chan_size: 10
 
 breakersetting:
   name: "OrderService"

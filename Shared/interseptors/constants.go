@@ -1,3 +1,5 @@
 package interseptors
 
-const requestIDKey = "x-request-id"
+type RequestID string
+
+var requestID RequestID = "x-request-id"

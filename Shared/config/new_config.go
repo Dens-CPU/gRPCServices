@@ -30,21 +30,46 @@ func NewConfigLoader(globalPathToEnv, envFile, configType, pathToLocalEnv, pathT
 	return &loader
 }
 
+// Get a new config
 func NewConfig[T any](loader *ConfigLoader) (*T, error) {
-	globalViper := viper.New()
-	globalViper.AddConfigPath(loader.GlobalPathToEnv)
-	globalViper.SetConfigFile(loader.EnvFile)
-	globalViper.SetConfigType(loader.EnvType)
 
-	if err := globalViper.ReadInConfig(); err != nil {
+	pathLocalEnv, err := GetPathToEnv(loader)
+	if err != nil {
 		return nil, err
 	}
 
-	pathLocalEnv := globalViper.GetString(loader.PathToLocalEnv)
-	if pathLocalEnv == "" {
-		return nil, fmt.Errorf("variable %s is not set", loader.PathToLocalEnv)
+	configViper, err := GetConfigViper(pathLocalEnv, loader)
+	if err != nil {
+		return nil, err
 	}
 
+	var cfg T
+	if err := configViper.Unmarshal(&cfg); err != nil {
+		return nil, err
+	}
+
+	return &cfg, nil
+}
+
+// Get path to local env
+func GetPathToEnv(loader *ConfigLoader) (string, error) {
+	viper := viper.New()
+	viper.AddConfigPath(loader.GlobalPathToEnv)
+	viper.SetConfigFile(loader.EnvFile)
+	viper.SetConfigType(loader.EnvType)
+
+	if err := viper.ReadInConfig(); err != nil {
+		return "", err
+	}
+
+	pathToLocalEnv := viper.GetString(loader.PathToLocalEnv)
+	if pathToLocalEnv == "" {
+		return "", fmt.Errorf("variable %s is not set", loader.PathToLocalEnv)
+	}
+	return pathToLocalEnv, nil
+}
+
+func GetConfigViper(pathLocalEnv string, loader *ConfigLoader) (*viper.Viper, error) {
 	envViper := viper.New()
 	envViper.SetConfigFile(pathLocalEnv)
 	envViper.SetConfigType(loader.EnvType)
@@ -72,12 +97,5 @@ func NewConfig[T any](loader *ConfigLoader) (*T, error) {
 			configViper.Set(configKey, val)
 		}
 	}
-
-	// 6. Парсим
-	var cfg T
-	if err := configViper.Unmarshal(&cfg); err != nil {
-		return nil, err
-	}
-
-	return &cfg, nil
+	return configViper, nil
 }

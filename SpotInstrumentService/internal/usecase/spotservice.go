@@ -2,13 +2,14 @@ package usecase
 
 import (
 	domainmarket "github.com/DencCPU/gRPCServices/SpotInstrumentService/internal/domain/market"
+	domainusers "github.com/DencCPU/gRPCServices/SpotInstrumentService/internal/domain/users"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
 // Интерфейс для рынков
 type StorageRepo interface {
-	GetEnableMarkets() []*domainmarket.Market //Получение доступных рынков
+	GetEnableMarkets(input domainusers.Input) ([]*domainmarket.Market, string) //Получение доступных рынков
 }
 
 type SpotService struct {

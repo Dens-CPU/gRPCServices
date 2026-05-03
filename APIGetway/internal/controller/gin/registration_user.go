@@ -13,7 +13,7 @@ func (api *GinAPI) RegistrationUser(c *gin.Context) {
 	err := c.ShouldBindJSON(&newUser)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"ошибка сериализации": err.Error(),
+			"serialization error": err.Error(),
 		})
 		return
 	}
@@ -25,7 +25,6 @@ func (api *GinAPI) RegistrationUser(c *gin.Context) {
 		})
 		return
 	}
-	fmt.Println(pairToken)
 	c.JSON(http.StatusOK, gin.H{
 		"accsess token": pairToken.AccessToken,
 		"refresh token": pairToken.RefreshToken,

@@ -2,9 +2,9 @@ package notify
 
 import orderdomain "github.com/DencCPU/gRPCServices/OrderService/internal/domain/order"
 
-// Добавление нового подписчика для получения актуального статуса
+// Add a new sub
 func (s *StatusStorage) AddNewSub(key orderdomain.Key) chan string {
-	ch := make(chan string, 10) // буфер 1, чтобы генератор не блокировался
+	ch := make(chan string, 10)
 	s.mu.Lock()
 	s.Subs[key] = append(s.Subs[key], ch)
 	s.mu.Unlock()

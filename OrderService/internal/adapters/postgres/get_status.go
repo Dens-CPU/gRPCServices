@@ -16,7 +16,7 @@ func (p *PostgresDB) GetOrderState(ctx context.Context, key orderdomain.Key) (st
 	JOIN orders_id ON orders.order_id = orders_id.id
 	WHERE users.user_id = $1
 	AND orders_id.order_id = $2
-`, key.User_id, key.Order_id).Scan(&status)
+`, key.UserId, key.OrderId).Scan(&status)
 	if err != nil {
 		return "", err
 	}

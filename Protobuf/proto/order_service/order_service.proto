@@ -2,10 +2,11 @@ syntax = "proto3";
 
 package order_service.v2;
 
+import "common/common.proto";
 import "google/protobuf/timestamp.proto";
 import "validate/validate.proto";
 
-option go_package = "github.com/DensCPU/gRPCServices/Protobuf/gen/order_service";
+option go_package = "github.com/DenсCPU/gRPCServices/Protobuf/gen/order_service";
 
 //Сервис управления заказами
 service OrderService {
@@ -16,26 +17,27 @@ service OrderService {
 
 //Запрос для GetOrderStatus
 message GetOrderReq {
-  string order_id = 1 [(validate.rules).string.uuid = true]; //ID заказа
-  string user_id = 2 [(validate.rules).string.uuid = true]; //ID пользователя
+  string order_id = 1 [(validate.rules).string.uuid = true];
+  string user_id = 2 [(validate.rules).string.uuid = true];
 }
 
 //Ответ для GetOrderStatus
 message GetOrderResp {
-  string order_status = 1 [(validate.rules).string.min_len = 1]; //Статус заказа
-  string order_id = 2 [(validate.rules).string.uuid = true]; //ID заказа
+  string order_status = 1 [(validate.rules).string.min_len = 1];
+  string order_id = 2 [(validate.rules).string.uuid = true];
 }
 
 //Запрос для CreateOrder
 message CreateOrderReq {
-  string user_id = 1 [(validate.rules).string.min_len = 1]; //Идентификатор пользователя
-  string market_id = 2 [(validate.rules).string.uuid = true]; // Индентифиактор маркетплейса
-  OrderType order_type = 3; //Тип заказа(Стандарт,экспрес,по времени)
-  string price = 4 [(validate.rules).string = {//Цена
+  string user_id = 1 [(validate.rules).string.uuid = true];
+  string market_id = 2 [(validate.rules).string.uuid = true];
+  OrderType order_type = 3;
+  string price = 4 [(validate.rules).string = {
+    pattern: "^\\d+(?:\\.\\d+)?$|^\\.\\d+$"
     min_len: 1
-    max_len: 10
   }];
-  int64 quantity = 5 [(validate.rules).int64.gte = 1]; //Количество
+  int64 quantity = 5 [(validate.rules).int64.gte = 1];
+  common.UserRole user_role = 6;
 }
 
 enum OrderType {
@@ -46,13 +48,13 @@ enum OrderType {
 
 //Ответ для CreateOrder
 message CreateOrderResp {
-  string order_id = 1 [(validate.rules).string.uuid = true]; //Идентификатор заказа
-  string order_status = 2 [(validate.rules).string.min_len = 1]; //Статус заказа
+  string order_id = 1 [(validate.rules).string.uuid = true];
+  string order_status = 2 [(validate.rules).string.min_len = 1];
 }
 
 message StreamOrderUpdateReq {
-  string order_id = 1 [(validate.rules).string.min_len = 1]; //ID заказа
-  string user_id = 2 [(validate.rules).string.uuid = true]; //ID пользователя
+  string order_id = 1 [(validate.rules).string.min_len = 1];
+  string user_id = 2 [(validate.rules).string.uuid = true];
 }
 
 message StreamOrderUpdateResp {

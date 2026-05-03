@@ -4,7 +4,7 @@ import "go.uber.org/zap"
 
 func NewLogger() (*zap.Logger, error) {
 
-	configLog := zap.Config{ //Создание конфига логгера
+	configLog := zap.Config{
 		Level:            zap.NewAtomicLevelAt(zap.InfoLevel),
 		Development:      true,
 		Encoding:         "console",

@@ -25,13 +25,13 @@ func NewDB(ctx context.Context, logger *zap.Logger, cfg userconfig.Postgres) (*P
 		cfg.Name,
 		cfg.Sslmode,
 	)
-	fmt.Println(dsn)
+
 	db, err := pgxpool.New(ctx, dsn)
 	if err != nil {
 		return nil, fmt.Errorf("postgres database is unavailable:%w", err)
 	}
 
-	// Проверка соединения
+	//Check connection
 	conn, err := db.Acquire(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("cannot acquire connection from pool:%w", err)

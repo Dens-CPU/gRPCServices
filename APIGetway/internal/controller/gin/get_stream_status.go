@@ -1,27 +1,29 @@
 package gin
 
 import (
-	"context"
 	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
 
 	orderdto "github.com/DencCPU/gRPCServices/APIGetway/internal/adapters/dto/order_service"
 	"github.com/gin-gonic/gin"
-	"github.com/gorilla/websocket"
 )
 
 func (api *GinAPI) GetStreamStatus(c *gin.Context) {
 	var orderInfo orderdto.GetInput
 
-	err := c.ShouldBindJSON(&orderInfo)
-	if err != nil {
+	//Get order info
+	//Get orderID from query row
+	orderInfo.OrderId = c.Query("id")
+	if orderInfo.OrderId == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
+			"error": "unfinde orderID in query row",
 		})
-		c.Abort()
 		return
 	}
 
+	//Get userId from context
 	uid, exist := c.Get("x-user-id")
 	if !exist {
 		c.JSON(http.StatusBadGateway, gin.H{
@@ -36,79 +38,53 @@ func (api *GinAPI) GetStreamStatus(c *gin.Context) {
 		})
 		return
 	}
-	orderInfo.User_id = user_id
+	orderInfo.UserId = user_id
 
-	ws, err := api.upgrader.Upgrade(c.Writer, c.Request, nil)
-	if err != nil {
-		c.JSON(http.StatusBadGateway, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
-	defer ws.Close()
-
-	ctx, cancel := context.WithCancel(c.Request.Context())
-	defer cancel()
-
-	msgChan := make(chan orderdto.StreamOutput, 10)
+	msgChan := make(chan orderdto.StreamOutput, 1)
 	errChan := make(chan error, 1)
 
 	go func() {
-		err := api.service.GetStreamStatus(ctx, orderInfo, msgChan)
-		if err != nil {
-			errChan <- err
-		}
-		close(msgChan)
-	}()
-
-	go func() {
-		for {
-			if _, _, err := ws.ReadMessage(); err != nil {
-				cancel()
+		defer close(msgChan)
+		err := api.service.GetStreamStatus(c.Request.Context(), orderInfo, msgChan)
+		select {
+		case <-c.Request.Context().Done():
+			return
+		default:
+			if err != nil {
+				errChan <- err
 				return
 			}
 		}
+
 	}()
 
-	for {
+	c.Header("Content-Type", "text/event-stream")
+	c.Header("Cache-Control", "no-cache")
+	c.Header("Connection", "keep-alive")
+	c.Header("Transfer-Encoding", "chunked")
+
+	var update struct {
+		Status     string `json:"status"`
+		UpdateTime string `json:"update_time"`
+	}
+
+	c.Stream(func(w io.Writer) bool {
 		select {
+		case err := <-errChan:
+			fmt.Fprintf(w, "event: error\ndata: %s\n\n", err.Error())
+			return false
+		case <-c.Request.Context().Done():
+			return false
 		case msg, ok := <-msgChan:
 			if !ok {
-				ws.WriteMessage(websocket.CloseMessage,
-					websocket.FormatCloseMessage(websocket.CloseNormalClosure, "stream finished"))
-				return
+				fmt.Fprintf(w, "event: message\ndata: transfer completed\n\n")
+				return false
 			}
-
-			data, err := json.Marshal(msg)
-			if err != nil {
-				errorMsg, _ := json.Marshal(map[string]string{
-					"error": err.Error(),
-				})
-				ws.WriteMessage(websocket.CloseMessage, errorMsg)
-				return
-			}
-
-			if err := ws.WriteMessage(websocket.TextMessage, data); err != nil {
-				errorMsg, _ := json.Marshal(map[string]string{
-					"error": err.Error(),
-				})
-				ws.WriteMessage(websocket.CloseMessage, errorMsg)
-				cancel()
-				return
-			}
-
-		case err := <-errChan:
-			errorMsg, _ := json.Marshal(map[string]string{
-				"error": err.Error(),
-			})
-			ws.WriteMessage(websocket.CloseMessage, errorMsg)
-			return
-
-		case <-ctx.Done():
-
-			ws.WriteMessage(websocket.CloseMessage,
-				websocket.FormatCloseMessage(websocket.CloseGoingAway, "connection closed"))
-			return
+			update.UpdateTime = msg.UpdateTime.Format("2006-01-02 15:04:05")
+			update.Status = msg.OrderStatus
+			data, _ := json.Marshal(update)
+			fmt.Fprintf(w, "event: message\ndata: %s\n\n", data)
+			return true
 		}
-	}
+	})
 }

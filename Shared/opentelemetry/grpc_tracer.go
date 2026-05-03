@@ -10,7 +10,7 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.37.0"
 )
 
-func NewTrace(ctx context.Context, serviceName, host, port string) (*sdktrace.TracerProvider, error) {
+func NewGrpcTracer(ctx context.Context, serviceName, host, port string) (*sdktrace.TracerProvider, error) {
 
 	exporter, err := otlptracegrpc.New(ctx,
 		otlptracegrpc.WithInsecure(),
@@ -19,10 +19,10 @@ func NewTrace(ctx context.Context, serviceName, host, port string) (*sdktrace.Tr
 	if err != nil {
 		return nil, err
 	}
-	sampler := sdktrace.TraceIDRatioBased(0.3) //Процент выборки для обработки спанов 30%
+	sampler := sdktrace.TraceIDRatioBased(0.3) //30% of spans are processed
 
 	tp := sdktrace.NewTracerProvider(
-		sdktrace.WithBatcher(exporter), //Обработка спанов пачками
+		sdktrace.WithBatcher(exporter), //Processing spans in batches
 		sdktrace.WithSampler(sampler),
 		sdktrace.WithResource(
 			resource.NewWithAttributes(

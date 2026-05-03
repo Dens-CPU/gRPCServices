@@ -13,7 +13,7 @@ postgres:
 
 jwt:
   secret:
-  ttl: 10
+  ttl: 60
 
 jaeger:
   host: 

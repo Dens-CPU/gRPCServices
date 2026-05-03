@@ -10,6 +10,7 @@ import (
 // In-memory хранилище для хранения рынков
 type Storage struct {
 	date   map[string]*domainmarket.Market //Хранилище
+	keys   []string
 	mu     sync.RWMutex
 	logger *zap.Logger
 }

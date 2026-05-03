@@ -3,25 +3,25 @@ package orderdto
 import "time"
 
 type GetInput struct {
-	User_id  string `json:"user_id"`
-	Order_id string `json:"order_id"`
+	UserId  string `json:"user_id"`
+	OrderId string `json:"order_id"`
 }
 
 type GetOutput struct {
-	Order_id     string
-	Order_status string
+	OrderId     string
+	OrderStatus string
 }
 
 type StreamOutput struct {
-	Order_status string
-	Update_time  time.Time
+	OrderStatus string
+	UpdateTime  time.Time
 }
 
 type Output struct {
-	Order_id     string
-	Order_status string
+	OrderId     string
+	OrderStatus string
 }
 
-func NewOutput(order_id, order_status string) Output {
-	return Output{order_id, order_status}
+func NewOutput(orderId, orderStatus string) Output {
+	return Output{orderId, orderStatus}
 }

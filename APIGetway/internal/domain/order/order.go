@@ -1,9 +1,18 @@
-package order
+package orderdomain
+
+type UserRole int32
+
+const (
+	USER_ROLE_UNSPECIFIED  UserRole = 0
+	USER_ROLE_BASIC_USER   UserRole = 1
+	USER_ROLE_PREMIUM_USER UserRole = 2
+)
 
 type OrderInfo struct {
-	User_id    string
-	Market_id  string
-	Order_type string
-	Price      string
-	Quantity   int64
+	UserId     string `json:"user_id"`
+	MarketId   string `json:"market_id"`
+	Order_type string `json:"order_type"`
+	Price      string `json:"price"`
+	Quantity   int64  `json:"quantity"`
+	UserRole   UserRole
 }

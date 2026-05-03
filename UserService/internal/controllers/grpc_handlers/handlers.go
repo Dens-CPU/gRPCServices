@@ -13,6 +13,7 @@ type Service interface {
 	CreateUser(context.Context, domainuser.User) (tokensdto.PairToken, error)
 	UpdateTokens(context.Context, tokensdto.InputTokens) (tokensdto.PairToken, error)
 	Validation(ctx context.Context, accessToken string) (user.Output, error)
+	AuthenticationUser(ctx context.Context, email, password string) (tokensdto.PairToken, error)
 }
 
 type Handler struct {

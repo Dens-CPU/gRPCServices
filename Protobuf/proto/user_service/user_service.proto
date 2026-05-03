@@ -2,34 +2,30 @@ syntax = "proto3";
 
 package user_service.v1;
 
+import "common/common.proto";
 import "google/protobuf/timestamp.proto";
 import "validate/validate.proto";
 
-option go_package = "github.com/DensCPU/gRPCServices/Protobuf/gen/user_service";
+option go_package = "github.com/DencCPU/gRPCServices/Protobuf/gen/user_service";
 
 service UserService {
   rpc CreateUser(CreateUserReq) returns (CreateUserResp);
   rpc UpdateTokens(UpdateTokensReq) returns (UpdateTokensResp);
   rpc ValidationTokens(ValidationReq) returns (ValidationResp);
+  rpc Authentication(AuthReq) returns (AuthResp);
 }
 
 message CreateUserReq {
   string name = 1 [(validate.rules).string.min_len = 2];
   string email = 2 [(validate.rules).string.email = true];
   string password = 3 [(validate.rules).string.min_len = 8];
-  UserRole user_role = 4;
+  common.UserRole user_role = 4;
 }
 
 message CreateUserResp {
-  string access_token = 1 [(validate.rules).string.min_len = 1];
-  string refresh_token = 2 [(validate.rules).string.uuid = true];
-  google.protobuf.Timestamp expire_at = 3 [(validate.rules).timestamp.lt_now = true];
-}
-
-enum UserRole {
-  USER_ROLE_UNSPECIFIED = 0;
-  USER_ROLE_BASIC_USER = 1;
-  USER_ROLE_PREMIUM_USER = 2;
+  string access_token = 1;
+  string refresh_token = 2;
+  google.protobuf.Timestamp expire_at = 3;
 }
 
 message UpdateTokensReq {
@@ -38,9 +34,9 @@ message UpdateTokensReq {
 }
 
 message UpdateTokensResp {
-  string access_token = 1 [(validate.rules).string.min_len = 1];
-  string refresh_token = 2 [(validate.rules).string.uuid = true];
-  google.protobuf.Timestamp expire_at = 3 [(validate.rules).timestamp.lt_now = true];
+  string access_token = 1;
+  string refresh_token = 2;
+  google.protobuf.Timestamp expire_at = 3;
 }
 
 message ValidationReq {
@@ -48,6 +44,17 @@ message ValidationReq {
 }
 
 message ValidationResp {
-  string user_id = 1 [(validate.rules).string.uuid = true];
-  UserRole role = 2;
+  string user_id = 1;
+  common.UserRole role = 2;
+}
+
+message AuthReq {
+  string email = 1 [(validate.rules).string.email = true];
+  string password = 2 [(validate.rules).string.min_len = 8];
+}
+
+message AuthResp {
+  string access_token = 1;
+  string refresh_token = 2;
+  google.protobuf.Timestamp expire_at = 3;
 }

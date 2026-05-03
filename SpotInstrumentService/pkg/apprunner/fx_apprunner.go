@@ -150,7 +150,7 @@ func TracingModule() fx.Option {
 					propagation.TraceContext{},
 					propagation.Baggage{},
 				))
-				trace, err := opentelemetry.NewTrace(context.Background(), "spotService", config.Jaeger.Host, config.Jaeger.Port)
+				trace, err := opentelemetry.NewGrpcTracer(context.Background(), "spotService", config.Jaeger.Host, config.Jaeger.Port)
 				if err != nil {
 					logger.Error("tracer initialization error:",
 						zap.Error(err))

@@ -2,23 +2,48 @@ package orderclient
 
 import (
 	"context"
+	"errors"
+	"fmt"
 
 	orderdto "github.com/DencCPU/gRPCServices/APIGetway/internal/adapters/dto/order_service"
 	"github.com/DencCPU/gRPCServices/Protobuf/gen/order_service"
+	"github.com/sony/gobreaker"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func (c *Client) GetStatus(ctx context.Context, input orderdto.GetInput) (orderdto.GetOutput, error) {
-	req := order_service.GetOrderReq{
-		OrderId: input.Order_id,
-		UserId:  input.User_id,
-	}
-	resp, err := c.GetOrderStatus(ctx, &req)
+	result, err := c.breaker.Execute(func() (interface{}, error) {
+		req := order_service.GetOrderReq{
+			OrderId: input.OrderId,
+			UserId:  input.UserId,
+		}
+		resp, err := c.GetOrderStatus(ctx, &req)
+		if err != nil {
+			return orderdto.GetOutput{}, err
+		}
+
+		if resp.OrderId == "" || resp.OrderStatus == "" {
+			return orderdto.GetOutput{}, errors.New("incorrect response from the server")
+		}
+		return resp, err
+	})
+
 	if err != nil {
+		if errors.Is(err, gobreaker.ErrOpenState) {
+			return orderdto.GetOutput{}, status.Errorf(codes.Unavailable, "service is temporarily unavailable")
+		}
 		return orderdto.GetOutput{}, err
 	}
+
+	resp, ok := result.(*order_service.GetOrderResp)
+	if !ok {
+		return orderdto.GetOutput{}, fmt.Errorf("Inappropriate result type:%T", result)
+	}
+
 	output := orderdto.GetOutput{
-		Order_id:     resp.OrderId,
-		Order_status: resp.OrderStatus,
+		OrderId:     resp.OrderId,
+		OrderStatus: resp.OrderStatus,
 	}
 	return output, nil
 }

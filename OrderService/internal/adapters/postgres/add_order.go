@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"fmt"
 	"time"
 
 	"context"
@@ -11,7 +12,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
-	"go.uber.org/zap"
 )
 
 // Добавление заказа в БД (таблица orers)
@@ -22,68 +22,63 @@ func (p *PostgresDB) AddOrderStorage(ctx context.Context, newOrder orderdomain.O
 	//Начало транзакции
 	tx, err := p.Begin(ctx)
 	if err != nil {
-		p.logger.Error("error starting transaction:",
-			zap.Error(err),
-		)
-		return "", "", err
+		return "", "", fmt.Errorf("error starting transaction:%w", err)
 	}
 
 	//Добавление ID заказа
 	refOrderId, orderID, err := p.AddOrderID(tx, ctx, newOrder, markets)
 	if err != nil {
-		p.logger.Error("error adding OrderID:",
-			zap.Error(err),
-		)
-		tx.Rollback(ctx)
-		return "", "", err
+		return "", "", fmt.Errorf("error adding OrderID:%w", err)
 	}
 	//Добавление пользователя
 	refUserID, err := p.AddUserID(tx, ctx, newOrder)
 	if err != nil {
-		p.logger.Error("error adding UserID:",
-			zap.Error(err),
-		)
-		tx.Rollback(ctx)
-		return "", "", err
+		return "", "", fmt.Errorf("error adding UserID:%w", err)
 	}
 
 	//Добавление рынка
 	refMarketID, err := p.AddMarketID(tx, ctx, newOrder, markets)
 	if err != nil {
-		p.logger.Error("error adding MarketID:",
-			zap.Error(err),
-		)
-		tx.Rollback(ctx)
-		return "", "", err
+		return "", "", fmt.Errorf("error adding UserID:%w", err)
 	}
 
-	//Добавление ссылок в users
-	dto.Ref_User_Id = refUserID
-	dto.Ref_Market_Id = refMarketID
-	dto.Ref_Order_Id = refOrderId
+	//Add reference to order dto
+	dto.RefUserId = refUserID
+	dto.RefMarketId = refMarketID
+	dto.RefOrderId = refOrderId
 	dto.Status = "created"
-	dto.Created_at = time.Now()
+	dto.CreatedAt = time.Now()
 
 	//Добавление заказа
-	var order_status string
+	var orderStatus string
 	err = tx.QueryRow(ctx, `
 	INSERT INTO orders(user_id,market_id,order_type,price,quantity,status,order_id,created_at)
 	VALUES($1,$2,$3,$4,$5,$6,$7,$8)
 	RETURNING status
-	`, dto.Ref_User_Id, dto.Ref_Market_Id, dto.Order_type, dto.Price, dto.Quantity, dto.Status, dto.Ref_Order_Id, dto.Created_at).Scan(&order_status)
+	`,
+		dto.RefUserId,
+		dto.RefMarketId,
+		dto.OrderType,
+		dto.Price,
+		dto.Quantity,
+		dto.Status,
+		dto.RefOrderId,
+		dto.CreatedAt,
+	).Scan(&orderStatus)
 	if err != nil {
-		tx.Rollback(ctx)
-		p.logger.Error("Error adding order to database:",
-			zap.Error(err),
-		)
-		return "", "", err
+		return "", "", fmt.Errorf("Error adding order to database:%w", err)
 	}
 
-	if err := tx.Commit(ctx); err != nil {
-		return "", "", err
+	orderInfo := orderdomain.OrderInfo{
+		OrderType: newOrder.OrderType,
+		UserId:    newOrder.UserId,
+		OrderId:   orderID,
 	}
 
-	return orderID, order_status, nil
+	p.controlOrderChan <- orderInfo
+
+	defer tx.Rollback(ctx)
+	return orderID, orderStatus, tx.Commit(ctx)
 }
 
 // Добавленение рынка в БД (таблица markets)
@@ -91,14 +86,14 @@ func (p *PostgresDB) AddMarketID(tx pgx.Tx, ctx context.Context, newOrder orderd
 	var marketName string
 
 	for _, m := range markets {
-		if m.ID == newOrder.Market_id {
+		if m.ID == newOrder.MarketId {
 			marketName = m.Name
 		}
 	}
 
 	//Инициализация DTO
-	dto := postgresdto.CreateMarketDTO(newOrder.Market_id, marketName)
-	dto.Created_at = time.Now()
+	dto := postgresdto.CreateMarketDTO(newOrder.MarketId, marketName)
+	dto.CreatedAt = time.Now()
 
 	//Добавление маркета
 	var id int
@@ -108,7 +103,11 @@ func (p *PostgresDB) AddMarketID(tx pgx.Tx, ctx context.Context, newOrder orderd
 		ON CONFLICT (market_id) DO UPDATE
 		SET market_id = EXCLUDED.market_id
 		RETURNING id
-	`, dto.Market_name, dto.Market_id, dto.Created_at).Scan(&id)
+	`,
+		dto.MarketName,
+		dto.MarketId,
+		dto.CreatedAt,
+	).Scan(&id)
 
 	if err != nil {
 		return 0, err
@@ -123,7 +122,7 @@ func (p *PostgresDB) AddOrderID(tx pgx.Tx, ctx context.Context, newOrder orderdo
 
 	//Проверка наличия нужного рынка
 	for _, m := range markets {
-		if m.ID == newOrder.Market_id {
+		if m.ID == newOrder.MarketId {
 			foundMarket = true
 			break
 		}
@@ -132,13 +131,13 @@ func (p *PostgresDB) AddOrderID(tx pgx.Tx, ctx context.Context, newOrder orderdo
 		return 0, "", ordererrors.Avalible_markets
 	}
 
-	//Присвоение нового id заказа
+	//New Order_id
 	var orderID string
 	orderID = uuid.New().String()
 
 	//Ининциализация DTO
 	dto := postgresdto.CreateOrders_idDTO(orderID)
-	dto.Created_at = time.Now()
+	dto.CreatedAt = time.Now()
 
 	//Запись в БД
 	var id int
@@ -146,7 +145,11 @@ func (p *PostgresDB) AddOrderID(tx pgx.Tx, ctx context.Context, newOrder orderdo
 	INSERT INTO orders_id(order_id,created_at) 
 	VALUES ($1,$2)
 	RETURNING id
-	`, dto.Order_id, dto.Created_at).Scan(&id)
+	`,
+		dto.OrderId,
+		dto.CreatedAt,
+	).Scan(&id)
+
 	if err != nil {
 		return 0, "", err
 	}
@@ -157,8 +160,8 @@ func (p *PostgresDB) AddOrderID(tx pgx.Tx, ctx context.Context, newOrder orderdo
 // Добавление UserID в БД (таблица users)
 func (p *PostgresDB) AddUserID(tx pgx.Tx, ctx context.Context, newOrder orderdomain.Order) (int, error) {
 	//Инициализация DTO
-	dto := postgresdto.CreateUserDTO(newOrder.User_id)
-	dto.Created_at = time.Now()
+	dto := postgresdto.CreateUserDTO(newOrder.UserId)
+	dto.CreatedAt = time.Now()
 
 	//Поиск пользователя с id
 	var id int
@@ -168,7 +171,10 @@ func (p *PostgresDB) AddUserID(tx pgx.Tx, ctx context.Context, newOrder orderdom
 		ON CONFLICT (user_id) DO UPDATE
 		SET user_id = EXCLUDED.user_id
 		RETURNING id
-	`, dto.User_id, dto.Created_at).Scan(&id)
+	`,
+		dto.UserId,
+		dto.CreatedAt,
+	).Scan(&id)
 
 	if err != nil {
 		return 0, err

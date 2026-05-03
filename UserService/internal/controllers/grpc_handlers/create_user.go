@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/DencCPU/gRPCServices/Protobuf/gen/common"
 	user "github.com/DencCPU/gRPCServices/Protobuf/gen/user_service"
 	domainuser "github.com/DencCPU/gRPCServices/UserService/internal/domain/user"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -19,9 +20,9 @@ func (h *Handler) CreateUser(ctx context.Context, req *user.CreateUserReq) (*use
 	var role string
 
 	switch req.UserRole {
-	case user.UserRole_USER_ROLE_BASIC_USER:
+	case common.UserRole_USER_ROLE_BASIC_USER:
 		role = "basic"
-	case user.UserRole_USER_ROLE_PREMIUM_USER:
+	case common.UserRole_USER_ROLE_PREMIUM_USER:
 		role = "premium"
 	default:
 		return nil, errors.New("user type does not exist")
@@ -38,7 +39,7 @@ func (h *Handler) CreateUser(ctx context.Context, req *user.CreateUserReq) (*use
 	resp := &user.CreateUserResp{
 		AccessToken:  pairToken.AccessToken,
 		RefreshToken: pairToken.RefreshToken,
-		ExpireAt:     timestamppb.New(pairToken.Expire_at),
+		ExpireAt:     timestamppb.New(pairToken.ExpireAt),
 	}
 	return resp, nil
 }

@@ -17,7 +17,7 @@ func LoggerInterseptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
 	) (interface{}, error) {
 
 		//Изъятие ID-запроса из контекста
-		requestID, _ := ctx.Value(requestIDKey).(string)
+		requestID, _ := ctx.Value(string(requestID)).(string)
 
 		//Логирование входящего запроса
 		logger.Info("Service request",

@@ -1,22 +1,27 @@
 package domainmarket
 
-import "time"
+import (
+	"time"
+
+	domainusers "github.com/DencCPU/gRPCServices/SpotInstrumentService/internal/domain/users"
+)
 
 // Структура хранения данных о рынке
 type Market struct {
-	ID        string     //Идентификатор маркета
-	Name      string     //Название маркета
-	Enable    bool       //Доступ к маркету
-	Delete_at *time.Time //Время удаления маркета
+	ID         string
+	Name       string
+	Enable     bool
+	DeleteAt   *time.Time
+	UserAccess domainusers.UserRole
 }
 
 // Конструктор для создания нового рынка
 func NewMarket(id, name string) *Market {
 	m := Market{
-		ID:        id,
-		Name:      name,
-		Enable:    true,
-		Delete_at: nil,
+		ID:       id,
+		Name:     name,
+		Enable:   true,
+		DeleteAt: nil,
 	}
 	return &m
 }

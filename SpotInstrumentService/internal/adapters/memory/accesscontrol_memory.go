@@ -49,7 +49,7 @@ func (s *Storage) AccessControl(ctx context.Context) string {
 				if s.date[key].Enable != false { //Проверка доступа к рынку
 					s.date[key].Enable = false
 					delete_at := time.Now().Local()
-					s.date[key].Delete_at = &delete_at
+					s.date[key].DeleteAt = &delete_at
 					s.mu.Unlock()
 					break
 				}
@@ -63,7 +63,7 @@ func (s *Storage) AccessControl(ctx context.Context) string {
 				key := markets[n]
 				if s.date[key].Enable == false {
 					s.date[key].Enable = true
-					s.date[key].Delete_at = nil
+					s.date[key].DeleteAt = nil
 					s.mu.Unlock()
 					break
 				}

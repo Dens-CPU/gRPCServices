@@ -1,6 +1,7 @@
 package orderhandlers
 
 import (
+	"io"
 	"time"
 
 	orderdomain "github.com/DencCPU/gRPCServices/OrderService/internal/domain/order"
@@ -9,24 +10,30 @@ import (
 )
 
 func (h *Handlers) StreamOrderUpdate(req *order.StreamOrderUpdateReq, stream order.OrderService_StreamOrderUpdateServer) error {
-	//Валидация запроса
+	//Validation request
 	if err := req.Validate(); err != nil {
 		return nil
 	}
+
 	key := orderdomain.Key{
-		Order_id: req.OrderId,
-		User_id:  req.UserId,
+		OrderId: req.OrderId,
+		UserId:  req.UserId,
 	}
-	stateCh := h.Service.StreamGetState(stream.Context(), key)
+	stateCh, err := h.Service.StreamGetState(stream.Context(), key)
+	if err != nil {
+		return err
+	}
 
 	for {
 		select {
 		case status, ok := <-stateCh:
 			if !ok {
-				return nil
+				return io.EOF
 			}
+
 			update_time := timestamppb.New(time.Now())
 			stream.Send(&order.StreamOrderUpdateResp{OrderStatus: status, UpdateStatusTime: update_time})
+
 		case <-stream.Context().Done():
 			return nil
 		}

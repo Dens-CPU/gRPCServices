@@ -4,12 +4,24 @@ import (
 	"context"
 
 	"github.com/DencCPU/gRPCServices/APIGetway/internal/adapters/dto/tokens"
+	"go.uber.org/zap"
 )
 
 func (s *Service) UpdateTokens(ctx context.Context, accessToken, refreshToken string) (tokens.PairToken, error) {
+	ctx, span := s.tracer.Start(ctx, "Update token")
+	defer span.End()
+
 	pairToken, err := s.user_client.UpdateAccessToken(ctx, accessToken, refreshToken)
 	if err != nil {
+		s.logger.Error("tokens refresh error",
+			zap.String("spanID", span.SpanContext().SpanID().String()),
+			zap.Error(err),
+		)
 		return tokens.PairToken{}, err
 	}
+
+	s.logger.Info("tokens has been update",
+		zap.String("spanID:", span.SpanContext().SpanID().String()),
+	)
 	return pairToken, nil
 }

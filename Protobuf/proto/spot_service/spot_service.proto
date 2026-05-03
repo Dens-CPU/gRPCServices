@@ -2,32 +2,34 @@ syntax = "proto3";
 
 package spot_service.v2;
 
+import "common/common.proto";
 import "validate/validate.proto";
 
-option go_package = "github.com/DensCPU/gRPCServices/Protobuf/gen/spot_service"; //Нужно ли указывать версию (spot_service/v2)???
+option go_package = "github.com/DenсCPU/gRPCServices/Protobuf/gen/spot_service"; //Нужно ли указывать версию (spot_service/v2)???
 
 //Предоставления данных о рынках
 service SpotInstrumentService {
-  rpc ViewMarket(ViewReq) returns (ViewResp); //Проверка доступных рынков
+  rpc ViewMarket(ViewReq) returns (ViewResp);
 }
 
 //Запрос для ViewMarket
 message ViewReq {
-  UserRole user_roles = 1; //Поле для юзера
-}
-
-enum UserRole {
-  USER_ROLE_UNSPECIFIED = 0;
-  USER_ROLE_BASIC_USER = 1;
-  USER_ROLE_PREMIUM_USER = 2;
+  common.UserRole user_roles = 1;
+  string user_id = 2 [(validate.rules).string.uuid = true];
+  int32 page_size = 3 [(validate.rules).int32 = {
+    gte: 0
+    lte: 50
+  }];
+  string page_token = 4;
 }
 
 //Ответ для ViewMarket
 message ViewResp {
   repeated Markets enable_markets = 1;
+  string page_token = 2;
 }
 
 message Markets {
-  string market_id = 1 [(validate.rules).string.uuid = true];
-  string market_name = 2 [(validate.rules).string.min_len = 1];
+  string market_id = 1;
+  string market_name = 2;
 }

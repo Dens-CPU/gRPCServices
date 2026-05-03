@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package common;
+
+option go_package = "github.com/DencCPU/gRPCServices/Protobuf/gen/common";
+
+enum UserRole {
+  USER_ROLE_UNSPECIFIED = 0;
+  USER_ROLE_BASIC_USER = 1;
+  USER_ROLE_PREMIUM_USER = 2;
+}

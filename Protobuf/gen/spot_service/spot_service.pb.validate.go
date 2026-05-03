@@ -17,6 +17,8 @@ import (
 	"unicode/utf8"
 
 	"google.golang.org/protobuf/types/known/anypb"
+
+	common "github.com/DencCPU/gRPCServices/Protobuf/gen/common"
 )
 
 // ensure the imports are used
@@ -33,6 +35,8 @@ var (
 	_ = (*mail.Address)(nil)
 	_ = anypb.Any{}
 	_ = sort.Sort
+
+	_ = common.UserRole(0)
 )
 
 // define the regex for a UUID once up-front
@@ -61,8 +65,41 @@ func (m *ViewReq) validate(all bool) error {
 
 	// no validation rules for UserRoles
 
+	if err := m._validateUuid(m.GetUserId()); err != nil {
+		err = ViewReqValidationError{
+			field:  "UserId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if val := m.GetPageSize(); val < 0 || val > 50 {
+		err := ViewReqValidationError{
+			field:  "PageSize",
+			reason: "value must be inside range [0, 50]",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	// no validation rules for PageToken
+
 	if len(errors) > 0 {
 		return ViewReqMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *ViewReq) _validateUuid(uuid string) error {
+	if matched := _spot_service_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -194,6 +231,8 @@ func (m *ViewResp) validate(all bool) error {
 
 	}
 
+	// no validation rules for PageToken
+
 	if len(errors) > 0 {
 		return ViewRespMultiError(errors)
 	}
@@ -292,39 +331,12 @@ func (m *Markets) validate(all bool) error {
 
 	var errors []error
 
-	if err := m._validateUuid(m.GetMarketId()); err != nil {
-		err = MarketsValidationError{
-			field:  "MarketId",
-			reason: "value must be a valid UUID",
-			cause:  err,
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for MarketId
 
-	if utf8.RuneCountInString(m.GetMarketName()) < 1 {
-		err := MarketsValidationError{
-			field:  "MarketName",
-			reason: "value length must be at least 1 runes",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for MarketName
 
 	if len(errors) > 0 {
 		return MarketsMultiError(errors)
-	}
-
-	return nil
-}
-
-func (m *Markets) _validateUuid(uuid string) error {
-	if matched := _spot_service_uuidPattern.MatchString(uuid); !matched {
-		return errors.New("invalid uuid format")
 	}
 
 	return nil
